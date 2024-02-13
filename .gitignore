@@ -3,3 +3,4 @@ ESP_Main/components
 ESP_Main/build
 ESP_Main/managed_components
 Pico_Main/build
+ESP_Main/esp-idf

@@ -22,8 +22,6 @@ having to parse floats from the data. The command for stop should just be:
 
 for "Stop Motors"
 
-Note: The protocol for controlling motors 4-6 has not been implemented yet since
-their functionality is yet to be determined
 
 Where `T` is a flag indicating the theta component, `F` is a flag indicating the
 speed component, and `W` is a flag indicating the omega component
@@ -34,6 +32,8 @@ Furthermore, the ESP32 can request data from the rp2040 such as
 * Processed data from the ICM-20948 IMU 
 * TBD
 
+Note: The protocol for controlling motors 4-6 has not been implemented yet since
+their functionality is yet to be determined
 
 # SPI Communication Outline
 
@@ -41,3 +41,8 @@ The ESP32 on this board supports 3 SPI channels:
 1. Communication to the ESP32-CAM
 2. Communication to the Raspberry Pi port
 3. One spare header that can be used as an expansion port
+
+This board supports 3 chip select pins and 2 handshake pins. The handshake pins
+are connected to the ESP32-CAM port and the spare SPI header port. 
+
+The chip select pins are:

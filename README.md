@@ -66,3 +66,14 @@ where the Espressif component is installed and then run:
 > source ~/esp/esp-idf/exports.sh
 
 This will allow you to run `idf.py build` that compiles the code together.
+
+## rp2040 Pico Development
+
+To set up the rp2040 development environment, there is not too much to do. Much
+of this can be set up by following the official Raspbetty Pi Foundation guide to
+getting started with the Pico found here:
+
+https://datasheets.raspberrypi.com/pico/getting-started-with-pico.pdf
+
+Most of the set up comes from running two commands which can be found on the 7th
+page of the guide.
