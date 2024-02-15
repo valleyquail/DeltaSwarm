@@ -15,6 +15,23 @@ Thus, the format of the information sent over UART to the should be in a format
 like such:
 > T####F####W#### 
 
+The protocol is actually a bit unintuitive since the 4 bytes used by the
+characters in the string can actually be used to represent an entire 32 bit
+float. Thus, we define a function that will convert the float into character
+values that we can pass over in Big Endian format:
+
+``` 
+const int numCharsInPacket = 4;
+char buffer[4];
+char * convertToChars(float data){
+    
+    for (int i = 0; i < numCharsInPacket - 1; i++>){
+        buffer[numCharsInPacket - i] = data & 0xFF << (i * 8);
+    }
+    return buffer;
+}
+```
+
 Alternatively, there is a shorter command for stop to prevent the rp2040 from
 having to parse floats from the data. The command for stop should just be:
 

@@ -1,6 +1,8 @@
 #include "motion_controller.h"
 #include "../include/pin_definitions.h"
 #include <math.h>
+#include "RPi_Pico_TimerInterrupt.h"
+#include "config.h"
 
 // Physical constants for the robot that detmine how the robot moves
 const float WHEEL_RADIUS = 0.0325; // meters
@@ -20,11 +22,17 @@ const float MOTOR3_KP = 0.1;
 const float MOTOR3_KI = 0.1;
 const float MOTOR3_KD = 0.1;
 
+Motor *motor1 = new Motor(MOTOR1_A, MOTOR1_B, MOTOR1_A_ENC, MOTOR1_B_ENC);
+Motor *motor2 = new Motor(MOTOR2_A, MOTOR2_B, MOTOR2_A_ENC, MOTOR2_B_ENC);
+Motor *motor3 = new Motor(MOTOR3_A, MOTOR3_B, MOTOR3_A_ENC, MOTOR3_B_ENC);
+
+RPI_PICO_TimerInterrupt timer(0);
+
 MotionController::MotionController()
 {
-    this->motor1 = new Motor(MOTOR1_A, MOTOR1_B, MOTOR1_A_ENC, MOTOR1_B_ENC);
-    this->motor2 = new Motor(MOTOR2_A, MOTOR2_B, MOTOR2_A_ENC, MOTOR2_B_ENC);
-    this->motor3 = new Motor(MOTOR3_A, MOTOR3_B, MOTOR3_A_ENC, MOTOR3_B_ENC);
+    this->motor1 = motor1;
+    this->motor2 = motor2;
+    this->motor3 = motor3;
 
     // Set PID values for each motor
     motor1->setPIDVals(MOTOR1_KP, MOTOR1_KI, MOTOR1_KD);
@@ -34,7 +42,7 @@ MotionController::MotionController()
     // Initialize the encoder interrupt timer
 }
 
-int speedToEncoder(float speed)
+inline int speedToEncoder(float speed)
 {
     // Convert the speed to the encoder speed
     return (int)floor(speed * ENCODER_COUNTS_PER_REV / (2 * PI * WHEEL_RADIUS));
@@ -65,6 +73,13 @@ void MotionController::stop()
     motor3->setSpeed(0);
 }
 
+void MotionController::brake()
+{
+    motor1->brake();
+    motor2->brake();
+    motor3->brake();
+}
+
 int *MotionController::getEncoderValues()
 {
     int *encoderValues = new int[3];
@@ -74,4 +89,16 @@ int *MotionController::getEncoderValues()
     return encoderValues;
 }
 
-// void
+void MotionController::runPIDUpdate()
+{
+    motor1->updateSpeed();
+    motor2->updateSpeed();
+    motor3->updateSpeed();
+}
+
+void timerISR()
+{
+    calcEncoderDelta(motor1);
+    calcEncoderDelta(motor2);
+    calcEncoderDelta(motor3);
+}

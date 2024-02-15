@@ -26,10 +26,10 @@ const uint8_t MOTOR5_B_ENC = 27;
 const uint8_t MOTOR6_A_ENC = 28;
 const uint8_t MOTOR6_B_ENC = 29;
 
-const uint8_t TX_PIN = 12;
-const uint8_t RX_PIN = 13;
+const uint8_t SDA_PIN_1 = 12;
+const uint8_t SCL_PIN_1 = 13;
 
-const uint8_t SDA_PIN = 16;
-const uint8_t SCL_PIN = 17;
+const uint8_t SDA_PIN_0 = 16;
+const uint8_t SCL_PIN_0 = 17;
 
 const uint8_t NEOPIXEL_PIN = 15;

@@ -34,4 +34,6 @@ public:
     // Sets both PWM channels high so that the motors have some force to hold the robot in place
     void brake();
     int *getEncoderValues();
+
+    void runPIDUpdate();
 };

@@ -28,6 +28,9 @@ void StatusLED::SetOK()
 {
     this->pixel.setPixelColor(0, 0, 255, 0);
     this->pixel.show();
+#ifdef DEBUG
+    printf("LED on\n");
+#endif
 }
 
 // Turn off the LED
@@ -35,4 +38,7 @@ void StatusLED::SetOff()
 {
     this->pixel.setPixelColor(0, 0, 0, 0);
     this->pixel.show();
+#ifdef DEBUG
+    printf("LED off\n");
+#endif
 }
