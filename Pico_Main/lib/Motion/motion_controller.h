@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <Arduino.h>
-#include "../lib/Motion/motor.h"
+#include "motor.h"
 
 /**
  * @brief Class that hanbdles the motion of the robot. This only handles the
@@ -10,11 +10,6 @@
  */
 class MotionController
 {
-
-private:
-    Motor *motor1 = nullptr;
-    Motor *motor2 = nullptr;
-    Motor *motor3 = nullptr;
 
 public:
     MotionController();
@@ -37,3 +32,5 @@ public:
 
     void runPIDUpdate();
 };
+
+extern MotionController motionController;

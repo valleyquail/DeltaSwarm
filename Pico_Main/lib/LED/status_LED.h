@@ -13,11 +13,18 @@ private:
 
 public:
     StatusLED(uint8_t pin);
-
+    // Red
     void SetError();
+    // Yellow
     void SetWarning();
+    // Green
     void SetOK();
+    // Off
     void SetOff();
+    // Blue
+    void showI2CFromESP();
 };
+
+extern StatusLED statusLED;
 
 #endif

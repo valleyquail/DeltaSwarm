@@ -1,7 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "../include/status_LED.h"
-#include <Adafruit_NeoPixel.h>
+#include "status_LED.h"
 
 StatusLED::StatusLED(uint8_t pin)
 {
@@ -29,7 +26,7 @@ void StatusLED::SetOK()
     this->pixel.setPixelColor(0, 0, 255, 0);
     this->pixel.show();
 #ifdef DEBUG
-    printf("LED on\n");
+    Serial.printf("LED on\n");
 #endif
 }
 
@@ -39,6 +36,15 @@ void StatusLED::SetOff()
     this->pixel.setPixelColor(0, 0, 0, 0);
     this->pixel.show();
 #ifdef DEBUG
-    printf("LED off\n");
+    Serial.printf("LED off\n");
+#endif
+}
+
+void StatusLED::showI2CFromESP()
+{
+    this->pixel.setPixelColor(0, 0, 0, 255);
+    this->pixel.show();
+#ifdef DEBUG
+    Serial.printf("Getting I2C Read\n");
 #endif
 }

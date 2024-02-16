@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "RPi_Pico_TimerInterrupt.h"
+#include "../../include/config.h"
 #include "../../include/pin_definitions.h"
 #include "pico/stdlib.h"
 
@@ -11,9 +12,9 @@
 // class. Actuator motors will likely be a child class of the Motor class since
 // they will have additional functions
 
-extern Motor *motor1;
-extern Motor *motor2;
-extern Motor *motor3;
+extern Motor motor1;
+extern Motor motor2;
+extern Motor motor3;
 
 void encoderInterruptA(void *motor_instance);
 void encoderInterruptB(void *motor_instance);
@@ -25,22 +26,22 @@ void gpio_callback(uint gpio, uint32_t events)
     switch (gpio)
     {
     case MOTOR1_A_ENC:
-        encoderInterruptA(motor1);
+        encoderInterruptA(&motor1);
         break;
     case MOTOR1_B_ENC:
-        encoderInterruptB(motor1);
+        encoderInterruptB(&motor1);
         break;
     case MOTOR2_A_ENC:
-        encoderInterruptA(motor2);
+        encoderInterruptA(&motor2);
         break;
     case MOTOR2_B_ENC:
-        encoderInterruptB(motor2);
+        encoderInterruptB(&motor2);
         break;
     case MOTOR3_A_ENC:
-        encoderInterruptA(motor3);
+        encoderInterruptA(&motor3);
         break;
     case MOTOR3_B_ENC:
-        encoderInterruptB(motor3);
+        encoderInterruptB(&motor3);
         break;
     case MOTOR4_A_ENC:
         /* code */
@@ -71,7 +72,7 @@ void gpio_callback(uint gpio, uint32_t events)
 void calcEncoderDelta(void *motor_instance)
 {
     auto *motor = static_cast<Motor *>(motor_instance);
-    motor->encoderSpeed = motor->curr_movement_encoder_count - motor->prevCount;
+    motor->encoderSpeed = (motor->curr_movement_encoder_count - motor->prevCount);
     motor->prevCount = motor->curr_movement_encoder_count;
 }
 

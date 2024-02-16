@@ -1,8 +1,8 @@
 #include "motion_controller.h"
-#include "../include/pin_definitions.h"
+#include "../../include/config.h"
 #include <math.h>
 #include "RPi_Pico_TimerInterrupt.h"
-#include "config.h"
+#include "../../include/pin_definitions.h"
 
 // Physical constants for the robot that detmine how the robot moves
 const float WHEEL_RADIUS = 0.0325; // meters
@@ -22,24 +22,21 @@ const float MOTOR3_KP = 0.1;
 const float MOTOR3_KI = 0.1;
 const float MOTOR3_KD = 0.1;
 
-Motor *motor1 = new Motor(MOTOR1_A, MOTOR1_B, MOTOR1_A_ENC, MOTOR1_B_ENC);
-Motor *motor2 = new Motor(MOTOR2_A, MOTOR2_B, MOTOR2_A_ENC, MOTOR2_B_ENC);
-Motor *motor3 = new Motor(MOTOR3_A, MOTOR3_B, MOTOR3_A_ENC, MOTOR3_B_ENC);
+Motor motor1(MOTOR1_A, MOTOR1_B, MOTOR1_A_ENC, MOTOR1_B_ENC);
+Motor motor2(MOTOR2_A, MOTOR2_B, MOTOR2_A_ENC, MOTOR2_B_ENC);
+Motor motor3(MOTOR3_A, MOTOR3_B, MOTOR3_A_ENC, MOTOR3_B_ENC);
 
 RPI_PICO_TimerInterrupt timer(0);
-
+bool timerISR(struct repeating_timer *t);
 MotionController::MotionController()
 {
-    this->motor1 = motor1;
-    this->motor2 = motor2;
-    this->motor3 = motor3;
-
     // Set PID values for each motor
-    motor1->setPIDVals(MOTOR1_KP, MOTOR1_KI, MOTOR1_KD);
-    motor2->setPIDVals(MOTOR2_KP, MOTOR2_KI, MOTOR2_KD);
-    motor3->setPIDVals(MOTOR3_KP, MOTOR3_KI, MOTOR3_KD);
+    motor1.setPIDVals(MOTOR1_KP, MOTOR1_KI, MOTOR1_KD);
+    motor2.setPIDVals(MOTOR2_KP, MOTOR2_KI, MOTOR2_KD);
+    motor3.setPIDVals(MOTOR3_KP, MOTOR3_KI, MOTOR3_KD);
 
     // Initialize the encoder interrupt timer
+    timer.attachInterruptInterval(TIMER_INTERVAL_MS * 1000, timerISR);
 }
 
 inline int speedToEncoder(float speed)
@@ -59,46 +56,58 @@ void MotionController::setSpeed(float speed, float theta, float omega)
     int encoderSpeed1 = speedToEncoder(v1);
     int encoderSpeed2 = speedToEncoder(v2);
     int encoderSpeed3 = speedToEncoder(v3);
-
+#ifdef DEBUG
+    Serial.printf("Speeds: %f, %f, %f\n", v1, v2, v3);
+    Serial.printf("Encoder speeds: E1: %i, E2: %i, E3: %i\n", encoderSpeed1, encoderSpeed2, encoderSpeed3);
+#endif
     // Set the speed of each wheel
-    motor1->setSpeed(encoderSpeed1);
-    motor2->setSpeed(encoderSpeed2);
-    motor3->setSpeed(encoderSpeed3);
+
+    motor1.setTargetSpeed(encoderSpeed1);
+    motor2.setTargetSpeed(encoderSpeed2);
+    motor3.setTargetSpeed(encoderSpeed3);
 }
 
 void MotionController::stop()
 {
-    motor1->setSpeed(0);
-    motor2->setSpeed(0);
-    motor3->setSpeed(0);
+#ifdef DEBUG
+    Serial.printf("Stopping\n");
+#endif
+    motor1.setTargetSpeed(0);
+    motor2.setTargetSpeed(0);
+    motor3.setTargetSpeed(0);
 }
 
 void MotionController::brake()
 {
-    motor1->brake();
-    motor2->brake();
-    motor3->brake();
+    motor1.brake();
+    motor2.brake();
+    motor3.brake();
 }
 
 int *MotionController::getEncoderValues()
 {
     int *encoderValues = new int[3];
-    encoderValues[0] = motor1->getEncoderCount();
-    encoderValues[1] = motor2->getEncoderCount();
-    encoderValues[2] = motor3->getEncoderCount();
+    encoderValues[0] = motor1.getEncoderCount();
+    encoderValues[1] = motor2.getEncoderCount();
+    encoderValues[2] = motor3.getEncoderCount();
     return encoderValues;
 }
 
 void MotionController::runPIDUpdate()
 {
-    motor1->updateSpeed();
-    motor2->updateSpeed();
-    motor3->updateSpeed();
+#ifdef DEBUG
+    Serial.printf("Running PID update\n");
+#endif
+    motor1.updateSpeed();
+    motor2.updateSpeed();
+    motor3.updateSpeed();
 }
 
-void timerISR()
+bool timerISR(struct repeating_timer *t)
 {
-    calcEncoderDelta(motor1);
-    calcEncoderDelta(motor2);
-    calcEncoderDelta(motor3);
+    (void)t;
+    calcEncoderDelta(&motor1);
+    calcEncoderDelta(&motor2);
+    calcEncoderDelta(&motor3);
+    return true;
 }

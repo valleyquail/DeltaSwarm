@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "new": "cpp"
+        "new": "cpp",
+        "i2c.h": "c",
+        "stdlib.h": "c",
+        "i2c_control.h": "c"
     }
 }
