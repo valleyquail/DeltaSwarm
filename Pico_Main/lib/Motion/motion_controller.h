@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <Arduino.h>
-#include "motor.h"
 
 /**
  * @brief Class that hanbdles the motion of the robot. This only handles the

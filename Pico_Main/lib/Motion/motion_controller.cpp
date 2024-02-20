@@ -3,6 +3,8 @@
 #include <math.h>
 #include "RPi_Pico_TimerInterrupt.h"
 #include "../../include/pin_definitions.h"
+#include "motor.h"
+#include "encoder.h"
 
 // Physical constants for the robot that detmine how the robot moves
 const float WHEEL_RADIUS = 0.0325; // meters
@@ -28,6 +30,7 @@ Motor motor3(MOTOR3_A, MOTOR3_B, MOTOR3_A_ENC, MOTOR3_B_ENC);
 
 RPI_PICO_TimerInterrupt timer(0);
 bool timerISR(struct repeating_timer *t);
+
 MotionController::MotionController()
 {
     // Set PID values for each motor
@@ -37,6 +40,9 @@ MotionController::MotionController()
 
     // Initialize the encoder interrupt timer
     timer.attachInterruptInterval(TIMER_INTERVAL_MS * 1000, timerISR);
+    // Set the GPIO pins to trigger the encoder interrupts using the interrupt
+    // callback defined in encoder.cpp
+    gpio_set_irq_callback(&gpio_callback);
 }
 
 inline int speedToEncoder(float speed)
