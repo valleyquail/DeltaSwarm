@@ -21,6 +21,13 @@ public:
      */
     void setSpeed(float speed, float theta, float omega);
 
+    /**
+     * @brief Set the Speed object
+     *
+     * @param speeds array from the I2C interrupt that contains the speeds for each motor
+     */
+    void setSpeedFromI2C(uint8_t *speeds);
+
     // Stops the robot and sets the motors to idle
     void stop();
 

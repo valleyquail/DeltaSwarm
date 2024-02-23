@@ -75,6 +75,20 @@ void MotionController::setSpeed(float speed, float theta, float omega)
     motor3.setTargetSpeed(encoderSpeed3);
 }
 
+void MotionController::setSpeedFromI2C(uint8_t *speeds)
+{
+    // Bit shift the speeds to get the float values
+    float speed = speeds[1] << 24 | speeds[2] << 16 | speeds[3] << 8 | speeds[4];
+    float theta = speeds[6] << 24 | speeds[7] << 16 | speeds[8] << 8 | speeds[9];
+    float omega = speeds[11] << 24 | speeds[12] << 16 | speeds[13] << 8 | speeds[14];
+    // Get a boolean value for if the robot should keep its orientation
+    // bool orientation = speeds[16] & 0x01;
+#ifdef DEBUG
+    Serial.printf("Speed: %f, Theta: %f, Omega: %f\n", speed, theta, omega);
+#endif
+    setSpeed(speed, theta, omega);
+}
+
 void MotionController::stop()
 {
 #ifdef DEBUG

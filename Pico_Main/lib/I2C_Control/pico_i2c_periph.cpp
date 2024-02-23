@@ -4,6 +4,8 @@
 #include "i2c_control.h"
 #include "hardware/i2c.h"
 #include "hardware/irq.h"
+#include "../Motion/motion_controller.h"
+extern MotionController motionController;
 
 /**
  * Code referenced from this forum post:
@@ -17,11 +19,10 @@ struct DataPacket data_packets[NUM_PICO_REGISTERS];
 static void __not_in_flash_func(i2c0_irq_handler)()
 {
     uint32_t status = i2c0->hw->intr_stat;
-
+    Serial.printf("Interrupt status: %x\n", status);
     // Check to see if we have received data from the I2C controller
     if (status & I2C_IC_INTR_STAT_R_RX_FULL_BITS)
     {
-
         // Read the data (this will clear the interrupt)
         uint32_t value = i2c0->hw->data_cmd;
 
@@ -32,7 +33,9 @@ static void __not_in_flash_func(i2c0_irq_handler)()
             packet_address = (uint8_t)(value & I2C_IC_DATA_CMD_DAT_BITS);
             data_packets[packet_address].status.message_sent = false;
             data_packets[packet_address].index = 0;
+#ifdef DEBUG
             Serial.printf("Received address: %i\n", packet_address);
+#endif
         }
         else
         {
@@ -43,7 +46,7 @@ static void __not_in_flash_func(i2c0_irq_handler)()
         }
     }
 
-    // Check to see if the I2C controller is requesting data from the RAM
+    // Check to see if the I2C controller is requesting data
     if (status & I2C_IC_INTR_STAT_R_RD_REQ_BITS)
     {
 
@@ -60,16 +63,24 @@ static void __not_in_flash_func(i2c0_irq_handler)()
     {
         i2c0->hw->clr_tx_abrt;
         data_packets[packet_address].status.message_sent = true;
+#ifdef DEBUG
+        Serial.printf("TX abort detected\n");
+#endif
     }
     if (status & I2C_IC_INTR_STAT_R_STOP_DET_BITS)
     {
         i2c0->hw->clr_stop_det;
         data_packets[packet_address].status.message_sent = true;
-    }
-    if (status & I2C_IC_INTR_STAT_R_START_DET_BITS)
-    {
-        i2c0->hw->clr_start_det;
-        data_packets[packet_address].status.message_sent = true;
+#ifdef DEBUG
+        Serial.printf("Stop detected\n");
+#endif
+        if (packet_address == MOTOR_SPEEDS)
+        {
+#ifdef DEBUG
+            Serial.printf("Motor speeds: %c, %c\n", data_packets[MOTOR_SPEEDS].buffer[0], data_packets[MOTOR_SPEEDS].buffer[1]);
+#endif
+            motionController.setSpeed(data_packets[MOTOR_SPEEDS].buffer);
+        }
     }
 }
 
@@ -88,7 +99,7 @@ void initPicoPeriph()
     gpio_pull_up(SCL_PIN_1);
 
     // Enable the I2C interrupts we want to process
-    i2c0->hw->intr_mask = (I2C_IC_INTR_MASK_M_RD_REQ_BITS | I2C_IC_INTR_MASK_M_RX_FULL_BITS);
+    i2c0->hw->intr_mask = I2C_IC_INTR_MASK_M_RX_FULL_BITS | I2C_IC_INTR_MASK_M_RD_REQ_BITS | I2C_IC_RAW_INTR_STAT_TX_ABRT_BITS | I2C_IC_INTR_MASK_M_STOP_DET_BITS;
 
     // Set up the interrupt handler to service I2C interrupts
     irq_set_exclusive_handler(I2C0_IRQ, i2c0_irq_handler);
