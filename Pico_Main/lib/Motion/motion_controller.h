@@ -9,7 +9,6 @@
  */
 class MotionController
 {
-
 public:
     MotionController();
 

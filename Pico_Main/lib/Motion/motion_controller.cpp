@@ -5,6 +5,7 @@
 #include "../../include/pin_definitions.h"
 #include "motor.h"
 #include "encoder.h"
+#include "../I2C_Control/i2c_control.h"
 
 // Physical constants for the robot that detmine how the robot moves
 const float WHEEL_RADIUS = 0.0325; // meters
@@ -42,7 +43,7 @@ MotionController::MotionController()
     timer.attachInterruptInterval(TIMER_INTERVAL_MS * 1000, timerISR);
     // Set the GPIO pins to trigger the encoder interrupts using the interrupt
     // callback defined in encoder.cpp
-    gpio_set_irq_callback(&gpio_callback);
+    gpio_set_irq_enabled_with_callback(MOTOR1_A_ENC, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true, &gpio_callback);
 }
 
 inline int speedToEncoder(float speed)
@@ -50,7 +51,8 @@ inline int speedToEncoder(float speed)
     // Convert the speed to the encoder speed
     return (int)floor(speed * ENCODER_COUNTS_PER_REV / (2 * PI * WHEEL_RADIUS));
 }
-
+// TODO: Implement a keep orientation option so that it either arcs or it rotates
+// to keep the same orientation while moving forward
 void MotionController::setSpeed(float speed, float theta, float omega)
 {
     // Convert the speed, theta, and omega to the speed of each wheel

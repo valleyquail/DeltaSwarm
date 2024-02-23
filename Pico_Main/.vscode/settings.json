@@ -3,6 +3,10 @@
         "new": "cpp",
         "i2c.h": "c",
         "stdlib.h": "c",
-        "i2c_control.h": "c"
+        "i2c_control.h": "c",
+        "motion_controller.h": "c",
+        "i2c_slave.h": "c",
+        "config.h": "c",
+        "pico_i2c_periphcpp": "cpp"
     }
 }

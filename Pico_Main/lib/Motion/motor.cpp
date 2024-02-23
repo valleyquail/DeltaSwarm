@@ -72,7 +72,7 @@ void Motor::brake()
     pwmA->setPWM(pwm_pin_A, PWM_FREQ, 100);
     pwmB->setPWM(pwm_pin_B, PWM_FREQ, 100);
 #ifdef DEBUG
-    printf("Braking\n");
+    Serial.printf("Braking\n");
 #endif
 }
 
@@ -103,8 +103,7 @@ void Motor::updateSpeed()
     Serial.printf("Motor on pins: %d\t%d\n", pwm_pin_A, pwm_pin_B);
     Serial.printf("PID Speed: %d\n", encoderSpeed);
     Serial.printf("Error: %f\n", error);
-    Serial.printf("Current encoder counts: %i\n\n", curr_movement_encoder_count);
-
+    Serial.printf("Current encoder counts: %i\n", curr_movement_encoder_count);
 #endif
     // Update the last error
     lastError = error;

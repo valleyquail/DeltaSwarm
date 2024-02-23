@@ -23,6 +23,9 @@ void gpio_callback(uint gpio, uint32_t events)
 {
     // Put the GPIO event(s) that just happened into event_str
     // so we can print it
+#ifdef DEBUG
+    Serial.printf("GPIO %d had an event\n", gpio);
+#endif
     switch (gpio)
     {
     case MOTOR1_A_ENC:
@@ -64,9 +67,6 @@ void gpio_callback(uint gpio, uint32_t events)
     default:
         break;
     }
-#ifdef DEBUG
-    printf("GPIO %d had an event\n", gpio);
-#endif
 }
 
 void calcEncoderDelta(void *motor_instance)
