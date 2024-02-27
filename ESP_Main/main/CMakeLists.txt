@@ -3,5 +3,7 @@ idf_component_register(SRCS "main.cpp"
                     "../include/Eigen"
                     "../lib/Communication_Protocols"
                     "../lib/Odometry/extended_kf"
+                    "../lib/Status_LED"
                     "../lib/ROS_stuff"
+                    "../lib/Misc_Utils"
                     "../lib/")

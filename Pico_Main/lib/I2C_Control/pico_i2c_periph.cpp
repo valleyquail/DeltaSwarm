@@ -19,7 +19,9 @@ struct DataPacket data_packets[NUM_PICO_REGISTERS];
 static void __not_in_flash_func(i2c0_irq_handler)()
 {
     uint32_t status = i2c0->hw->intr_stat;
+#ifdef DEBUG
     Serial.printf("Interrupt status: %x\n", status);
+#endif
     // Check to see if we have received data from the I2C controller
     if (status & I2C_IC_INTR_STAT_R_RX_FULL_BITS)
     {
@@ -79,7 +81,7 @@ static void __not_in_flash_func(i2c0_irq_handler)()
 #ifdef DEBUG
             Serial.printf("Motor speeds: %c, %c\n", data_packets[MOTOR_SPEEDS].buffer[0], data_packets[MOTOR_SPEEDS].buffer[1]);
 #endif
-            motionController.setSpeed(data_packets[MOTOR_SPEEDS].buffer);
+            motionController.setSpeedFromI2C(data_packets[MOTOR_SPEEDS].buffer);
         }
     }
 }

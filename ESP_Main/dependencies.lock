@@ -12,11 +12,11 @@ dependencies:
       type: service
     version: 0.6.0~1
   espressif/esp-dsp:
-    component_hash: 46498b4973097cac29cfc6a692abef44375ffb7b00b73b3f354124efc626a154
+    component_hash: 8d9864049f97e4a1e7daafb4536b62b0878efa990a61048a91fab9b7c1b5b4cd
     source:
       service_url: https://api.components.espressif.com/
       type: service
-    version: 1.4.10
+    version: 1.4.11
   espressif/esp-sr:
     component_hash: 04b360c8eb79e02c204d9a2c3683f7bc20077752a01e51f636dd376db0ef1e82
     source:
@@ -24,17 +24,17 @@ dependencies:
       type: service
     version: 1.6.1
   espressif/esp-zboss-lib:
-    component_hash: a9e17babb2d43edc4bb6bc320f88560860122ac97e8fd72d7d5d9b3cd1578607
+    component_hash: b7bf691a285ab2bf7ff877082f50de5fba1e903e53352a1fe03326e2c1c636d6
     source:
       service_url: https://api.components.espressif.com/
       type: service
-    version: 1.1.1
+    version: 1.1.2
   espressif/esp-zigbee-lib:
-    component_hash: a1a23f47316d2d44b1573459c8cf547da7f2c8ea987154ad8d28235db69f1481
+    component_hash: d667197fd224c4d32e16e26cd3a4f5c9b0aba6f11f635b38fb25512620ce539b
     source:
       service_url: https://api.components.espressif.com/
       type: service
-    version: 1.1.1
+    version: 1.1.2
   espressif/esp_diag_data_store:
     component_hash: 8849195251dbb8a2d7268335277cfa310cef36e4ac1e90cd59ad3be4269a30d7
     source:
@@ -42,17 +42,17 @@ dependencies:
       type: service
     version: 1.0.1
   espressif/esp_diagnostics:
-    component_hash: fe19f5ee7f0145f406d36a4d5310e4ae0c6ee1afa47f2681ada8a2ea8582d390
+    component_hash: 2350938db074002ef088c05cd32d80a528185e47afdb3642427156256c3e13c5
     source:
       service_url: https://api.components.espressif.com/
       type: service
-    version: 1.0.2
+    version: 1.1.0
   espressif/esp_insights:
-    component_hash: 2472a19de98a8b991baeeac7209765b70ce14ec2b1435dbed3abd020dd0f7227
+    component_hash: 72ece1dcf0146275e1df976c713a9b193af0907931f3810957ee68a0a84b077d
     source:
       service_url: https://api.components.espressif.com/
       type: service
-    version: 1.0.1
+    version: 1.1.0
   espressif/esp_rainmaker:
     component_hash: 232425d1c9b9dbdaa5c109b3e359fba0e6956e35fcf22725f07ed7e4389e1191
     source:
@@ -118,6 +118,6 @@ dependencies:
       service_url: https://api.components.espressif.com/
       type: service
     version: 1.14.1
-manifest_hash: 406a6c91d7aa66fb073e0538918fadc9dbec465169faefe3bbe73dcf416f4e27
+manifest_hash: fb60a62d5231a0af7b9dd1f185962a236d4fb6a1fc0cfe73a72619e591937f1c
 target: esp32s3
 version: 1.0.0
