@@ -7,8 +7,8 @@ class StatusLED
 {
 private:
     Adafruit_NeoPixel pixels;
-    const uint8_t statusLED_pin = 0;
-    const uint8_t batteryLED_pin = 1;
+    const uint8_t statusLED_index = 0;
+    const uint8_t batteryLED_index = 1;
 
 public:
     StatusLED(uint8_t pin);

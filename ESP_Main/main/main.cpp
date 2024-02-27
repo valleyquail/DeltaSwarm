@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -5,19 +6,20 @@
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 #include "esp_err.h"
-#include <Arduino.h>
+
 #include "../lib/Status_LED/status_leds.h"
 
-void init_esp();
-StatusLED statusLED(2);
+#include "../include/config.h"
+StatusLED statusLED = StatusLED(NEOPIXEL_PIN);
 
-extern "C" void app_main(void)
+void setup()
 {
-    initArduino();
-    statusLED.SetOK();
+    Serial.begin(115200);
+    Serial.println("Starting up");
+
+    statusLED.SetWarning();
 }
 
-void init_esp()
+void loop()
 {
-    return;
 }
