@@ -34,9 +34,11 @@
 #define HANDSHAKE_2 14
 
 // I2C to Pico
+#define PICO_I2C_PORT 1
 #define PICO_SCL1 43
 #define PICO_SDA1 44
 
 // I2C to other/from PI
+#define I2C_SLAVE_PORT 0
 #define I2C_SCL 47
 #define I2C_SDA 48

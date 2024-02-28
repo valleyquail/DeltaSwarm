@@ -5,16 +5,17 @@ controller. This offloads a lot interrupts and pin requirements from the ESP32
 to the rp2040 with relatively few consequences. The motor control only really
 requires 3 components:
 
-| Component | Value     | Data Type | Meaning                                                                    |
-| --------- | --------- | --------- | -------------------------------------------------------------------------- |
-| Theta     | Radians   | Float     | Represents the angle relative to the heading in which to travel            |
-| Feed      | m/s       | Float     | Represents the speed in meters per second at which the robot should travel |
-| Omega     | Radians/s | Float     | The rate at which the robot should rotate about is center                  |
+| Component        | Value           | Data Type | Meaning                                                                                          |
+| ---------------- | --------------- | --------- | ------------------------------------------------------------------------------------------------ |
+| Theta            | Radians         | Float     | Represents the angle relative to the heading in which to travel                                  |
+| Feed             | m/s             | Float     | Represents the speed in meters per second at which the robot should travel                       |
+| Omega            | Radians/s       | Float     | The rate at which the robot should rotate about is center                                        |
+| Keep Orientation | Upper/Lowercase | Bool      | Flag to determine if the robot should keep its orientation during a move while omega is not zero |
 
 Thus, the format of the information sent over UART to the should be in a format
 like such:
 
-> T####F####W####
+> T####F####W####K
 
 The protocol is actually a bit unintuitive since the 4 bytes used by the
 characters in the string can actually be used to represent an entire 32 bit
@@ -41,7 +42,9 @@ having to parse floats from the data. The command for stop should just be:
 for "Stop Motors"
 
 Where `T` is a flag indicating the theta component, `F` is a flag indicating the
-speed component, and `W` is a flag indicating the omega component
+speed component, and `W` is a flag indicating the omega component. Furthermore,
+the flag for keeping orientation is either an upper or lowercase `K`. Lowercase
+`k` indicates false and uppercase indicates true.
 
 Furthermore, the ESP32 can request data from the rp2040 such as
 

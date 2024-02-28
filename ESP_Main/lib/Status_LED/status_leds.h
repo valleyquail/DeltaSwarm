@@ -1,8 +1,6 @@
 #include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
 
-const uint8_t NUMPIXELS = 2;
-
 class StatusLED
 {
 private:

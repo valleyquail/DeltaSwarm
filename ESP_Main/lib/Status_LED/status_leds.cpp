@@ -1,5 +1,7 @@
 #include "status_leds.h"
 
+const uint8_t NUMPIXELS = 2;
+
 StatusLED::StatusLED(uint8_t pin)
 {
     this->pixels = Adafruit_NeoPixel(NUMPIXELS, pin, NEO_GRB + NEO_KHZ800);

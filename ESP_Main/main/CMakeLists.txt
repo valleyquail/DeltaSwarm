@@ -1,6 +1,7 @@
 idf_component_register(SRCS "main.cpp"
                             "../lib/Status_LED/status_leds.cpp"
                             "initializations.cpp"
+                            "../lib/Communication_Protocols/I2C.cpp"
                     INCLUDE_DIRS "."
                     "../include/Eigen"
                     "../lib/Communication_Protocols"

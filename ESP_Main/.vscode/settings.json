@@ -8,9 +8,10 @@
     },
     "idf.espIdfPath": "/home/nikesh/esp/esp-idf",
     "idf.openOcdConfigs": [
-        "interface/ftdi/esp32_devkitj_v1.cfg",
-        "target/esp32.cfg"
+        "board/esp32s3-builtin.cfg"
     ],
     "idf.pythonBinPath": "/home/nikesh/.espressif/python_env/idf5.1_py3.10_env/bin/python",
-    "idf.toolsPath": "/home/nikesh/.espressif"
+    "idf.toolsPath": "/home/nikesh/.espressif",
+    "idf.port": "/dev/ttyACM0",
+    "idf.flashType": "JTAG"
 }
