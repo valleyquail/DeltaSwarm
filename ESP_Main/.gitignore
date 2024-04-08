@@ -1,6 +1,5 @@
 build/
 sdkconfig
-
-
 components/arduino
-components/micro_ros_espidf_component
+cmake-build-debug/
+.idea/

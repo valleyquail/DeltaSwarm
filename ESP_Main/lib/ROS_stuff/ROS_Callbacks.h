@@ -5,10 +5,11 @@
 #ifndef ESP_MAIN_ROS_CALLBACKS_H
 #define ESP_MAIN_ROS_CALLBACKS_H
 
-
-class ROS_Callbacks {
-
-};
+#include <stdio.h>
+#include <stdlib.h>
 
 
-#endif //ESP_MAIN_ROS_CALLBACKS_H
+extern "C" void xLaunch_ROS_Callbacks(const void *arg);
+
+
+#endif // ESP_MAIN_ROS_CALLBACKS_H

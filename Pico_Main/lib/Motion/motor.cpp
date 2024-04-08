@@ -33,12 +33,12 @@ void Motor::setTargetSpeed(int speed)
     sumError = 0;
     lastError = 0;
     target_speed = speed;
+    setSpeed(speed);
 #ifdef DEBUG
     Serial.printf("New speed set: %i\n", speed);
     Serial.printf("Total encoder count: %i\n", total_encoder_count);
 #endif
     isNewSpeed = false;
-    Serial.printf("target function locations of isnewspeed: %p\n", &isNewSpeed);
 }
 
 void Motor::setSpeed(int speed)

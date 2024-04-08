@@ -50,7 +50,7 @@ void setup()
   // For testing without the ESP
   // #ifdef NO_ESP_CONNECTION
   Serial.printf("I2C from ESP\n");
-  initPicoPeriph();
+  // initPicoPeriph();
   // #endif
 
 #ifdef NO_IMU
@@ -66,8 +66,9 @@ void loop()
   Serial.printf("looped\n");
 
   delay(1000);
-
+  motionController.setSpeed(0.5, 0, 0);
   delay(1000);
+  motionController.setSpeed(-0.5, 0, 0);
   // motionController.runPIDUpdate();
 
   // put your main code here, to run repeatedly:

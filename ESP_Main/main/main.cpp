@@ -2,16 +2,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "esp_err.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "freertos/semphr.h"
-#include "esp_err.h"
 
-#include "../lib/Status_LED/status_leds.h"
-#include "../lib/Communication_Protocols/I2C.h"
 #include "../include/config.h"
+#include "../lib/Robot/Robot.h"
+#include "../lib/Status_LED/status_leds.h"
+
+// #include <rmw_microros/rmw_microros.h>
+#include <uros_network_interfaces.h>
+
 StatusLED statusLED = StatusLED(NEOPIXEL_PIN);
-Pico_I2C pico_i2c = Pico_I2C();
+Robot robot = Robot(ROBOT_NUM);
 
 void setup()
 {
@@ -19,9 +22,14 @@ void setup()
     Serial.println("Starting up");
     statusLED.SetWarning();
     delay(1000);
-    pico_i2c.init();
+
+    bool init_successful = robot.init();
+    if (!init_successful)
+        statusLED.SetError();
+    else
+        statusLED.SetOK();
+
+    ESP_ERROR_CHECK(uros_network_interface_initialize());
 }
 
-void loop()
-{
-}
+void loop() {}

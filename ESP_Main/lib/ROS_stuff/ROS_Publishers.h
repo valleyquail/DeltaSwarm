@@ -5,4 +5,8 @@
 #ifndef ESP_MAIN_ROS_PUBLISHERS_H
 #define ESP_MAIN_ROS_PUBLISHERS_H
 
-#endif //ESP_MAIN_ROS_PUBLISHERS_H
+
+extern "C" void publishOdometry(float* odom);
+
+
+#endif // ESP_MAIN_ROS_PUBLISHERS_H

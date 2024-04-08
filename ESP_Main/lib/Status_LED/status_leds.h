@@ -1,5 +1,8 @@
-#include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
+#include <Arduino.h>
+
+// TODO: Remove Arduino component since it makes everything a lot slower due to
+// the additional components that are included, specifically the RTOS
 
 class StatusLED
 {

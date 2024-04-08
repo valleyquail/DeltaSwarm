@@ -13,5 +13,14 @@
     "idf.pythonBinPath": "/home/nikesh/.espressif/python_env/idf5.1_py3.10_env/bin/python",
     "idf.toolsPath": "/home/nikesh/.espressif",
     "idf.port": "/dev/ttyACM0",
-    "idf.flashType": "JTAG"
+    "idf.flashType": "JTAG",
+    "files.associations": {
+        "array": "c",
+        "bitset": "c",
+        "string_view": "c",
+        "initializer_list": "c",
+        "regex": "c",
+        "esp_netif.h": "c",
+        "esp_event.h": "c"
+    }
 }
