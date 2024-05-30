@@ -5,8 +5,7 @@
 #ifndef ESP_MAIN_ROBOT_H
 #define ESP_MAIN_ROBOT_H
 
-struct RobotMotion
-{
+struct RobotMotion {
     float x;
     float y;
     float z;
@@ -15,21 +14,25 @@ struct RobotMotion
     float yaw;
 };
 
-class Robot
-{
+class Robot {
 private:
     struct RobotMotion;
     int robot_number;
 
 public:
     Robot(int robot_number);
+
     bool init();
 
 
-    void setRobotMotion();
+    void setRobotMotion(float speed, float theta, float omega, bool orientation);
+
     // Getters
     const struct RobotMotion getRobotMotion();
+
     int getRobotNumber();
 };
+
+extern Robot robot;
 
 #endif // ESP_MAIN_ROBOT_H

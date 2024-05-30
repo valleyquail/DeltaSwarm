@@ -8,6 +8,10 @@
 
 Robot::Robot(int robot_number) { this->robot_number = robot_number; }
 
+void Robot::setRobotMotion(float speed, float theta, float omega, bool orientation) {
+    sendMovement(speed, theta, omega, orientation);
+}
+
 bool Robot::init() {
     // Initialize the Pico I2C
 

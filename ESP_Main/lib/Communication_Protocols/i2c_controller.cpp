@@ -26,9 +26,9 @@ uint8_t motorCommandBuffer[MOTOR_COMMAND_SIZE + 2];
 
 //Address buffers
 //______________________________________________________________________________________________________________________
-uint8_t odometryWrite[] = {PICO_ODOMETRY_COMMAND_REGISTER};
-uint8_t encoderCountWrite[] = {PICO_ENCODER_COUNT_COMMAND_REGISTER};
-uint8_t statusWrite[] = {PICO_STATUS_REGISTER};
+uint8_t odometryWrite[] = {PICO_ODOMETRY_COMMAND_REGISTER & 0xF0 >> 8, PICO_ODOMETRY_COMMAND_REGISTER & 0xF};
+uint8_t encoderCountWrite[] = {PICO_ENCODER_COUNT_COMMAND_REGISTER & 0xF0 >> 8, PICO_ODOMETRY_COMMAND_REGISTER & 0xf};
+uint8_t statusWrite[] = {(PICO_STATUS_REGISTER & 0xF0) >> 8, PICO_STATUS_REGISTER & 0xF};
 
 //Read data buffers
 //______________________________________________________________________________________________________________________
@@ -119,11 +119,11 @@ STATUS requestStatus() {
 #ifdef DEBUG
     printf("Requesting status\n");
 #endif
-    STATUS statusBuffer[2];
+    uint8_t statusBuffer[2];
     //Request the status of the pico to check if it is functioning properly
     i2c_master_write_read_device(i2c_master_port, PICO_ADDRESS, statusWrite, 2, statusBuffer, 2,
                                  I2C_MASTER_TIMEOUT_MS / configTICK_RATE_HZ);
-    return statusBuffer[0];
+    return (STATUS)statusBuffer[0];
 
 }
 
@@ -136,16 +136,16 @@ float robotOdometry[3];
  */
 float* requestOdometry() {
 #ifdef DEBUG
-    printf("Requesting odometry\n");`
+    printf("Requesting odometry\n");
 #endif
     //Request odometry information from the pico to report and/or use for motion planning
-    i2c_master_write_read_device(i2c_master_port, PICO_ADDRESS, odometryWrite ,odometryCommandBuffer,
-                                 ODOMETRY_COMMAND_SIZE, I2C_MASTER_TIMEOUT_MS/ configTICK_RATE_HZ);
+    i2c_master_write_read_device(i2c_master_port, PICO_ADDRESS, odometryWrite, 2, odometryBuffer,
+                                 ODOMETRY_COMMAND_SIZE , I2C_MASTER_TIMEOUT_MS/ configTICK_RATE_HZ);
     //Since the information is stored as floats but sent over as bytes, this converts the raw bytes into floats by
     //directly copying over the bytes into an array of floats that contains the requred information
     //TODO (nikesh): Check if the odometry is being sent correctly due to Endianness
-    memcpy(robotOdometry[0], odometryBuffer[0], 4);
-    memcpy(robotOdometry[1], odometryBuffer[4], 4);
-    memcpy(robotOdometry[2], odometryBuffer[8], 4);
+    memcpy(&robotOdometry[0], &odometryBuffer[0], 4);
+    memcpy(&robotOdometry[1], &odometryBuffer[4], 4);
+    memcpy(&robotOdometry[2], &odometryBuffer[8], 4);
     return robotOdometry;
 }
