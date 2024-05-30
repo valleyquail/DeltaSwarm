@@ -3,3 +3,67 @@
 
 // Priority of the micro-ROS app
 #define MICRO_ROS_APP_TASK_PRIO 5
+
+#include "rcl/rcl.h"
+#include "rclc/rclc.h"
+#include <stdlib.h>
+
+//Number of handles the executor will use: sum of the number of publishers, subscribers and timers
+static const int num_handles = 3;
+
+//Node configuration
+//______________________________________________________________________________________________________________________
+std::String name = "ESP_Robot" + std::to_string(ROBOT_NUM);
+extern rcl_node_t node;
+extern rcl_allocator_t allocator;
+extern rclc_executor_t executor;
+extern rclc_support_t support;
+
+//Timers
+//______________________________________________________________________________________________________________________
+extern rcl_timer_t check_alive_timer;
+//publish alive once a second
+const uint32_t timer_period = RCL_MS_TO_NS(1000);
+extern "C" void check_alive_timer_callback(rcl_timer_t *timer, int64_t last_call_time);
+
+//Timer Message
+//______________________________________________________________________________________________________________________
+extern std_msgs__msg__String alive_msg;
+const uint8_t ALIVE_MSG_CAPACITY = 16;
+inline void init_alive_msg();
+
+
+//Subscribers
+//______________________________________________________________________________________________________________________
+extern rcl_subscription_t movement_sub;
+
+//Subscriber Messages
+//______________________________________________________________________________________________________________________
+extern std_msgs__msg__String robot_movement_msg;
+const uint8_t ROBOT_MOVEMENT_MSG_CAPACITY = 16;
+
+
+//Publishers
+//______________________________________________________________________________________________________________________
+extern rcl_publisher_t check_alive_pub;
+extern rcl_publisher_t odom_pub;
+extern rcl_publisher_t robot_movement_pub;
+
+//Publisher Messages
+//______________________________________________________________________________________________________________________
+extern std_msgs__msg__String odom_msg;
+const uint8_t ODOM_MSG_CAPACITY = 16;
+
+
+
+
+
+
+//Launch ROS node
+extern "C" void xLaunchROSNode(const void *args);
+
+//Register ROS publishers and subscribers
+void register_ros_publishers(const void *args)
+void register_ros_callbacks(const void *args);
+//Initialize required messages
+inline void init_all_msg();

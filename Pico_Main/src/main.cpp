@@ -7,7 +7,7 @@
 #include "status_LED.h"
 #include <pico/stdlib.h>
 #include "../lib/I2C_Control/i2c_control.h"
-#include "../lib/I2C_Control/IMU.h"
+
 #include "../lib/Testing/serial_debugger.h"
 
 #include "hardware/gpio.h"
@@ -50,7 +50,8 @@ void setup()
   // For testing without the ESP
   // #ifdef NO_ESP_CONNECTION
   Serial.printf("I2C from ESP\n");
-  // initPicoPeriph();
+  register_i2c_function(&motionCallback, PICO_MOTOR_COMMAND_REGISTER);
+  initPicoPeriph();
   // #endif
 
 #ifdef NO_IMU

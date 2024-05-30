@@ -6,12 +6,14 @@
 
 // TODO: Maybe make a child class for drive motors vs actuator motors so that
 // there can be functionality to change the PWM frequency of the motor for
-// differnt speed control responses?
+// different speed control responses?
+//TODO: Need to add a lot of logic to handle the pulses for short movements since there is a large amount of
+// static friction within the motor that makes it difficult to move small amounts
 class Motor
 {
 protected:
     // 20kHz PWM frequency
-    const int PWM_FREQ = 20000;
+    const float PWM_FREQ = 20000.;
     // Used to control the motors:
     enum controlMode
     {
@@ -32,7 +34,7 @@ protected:
 
     volatile int16_t lastA = 0;
     volatile int16_t lastB = 0;
-    // Stores the enbcoder count since the program started
+    // Stores the encoder count since the program started
     int64_t total_encoder_count = 0;
     // Stores the encoder count since the last movement
     // Resets everytime there is a new movement

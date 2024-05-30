@@ -6,7 +6,7 @@ to the rp2040 with relatively few consequences. The motor control only really
 requires 3 components:
 
 | Component        | Value           | Data Type | Meaning                                                                                          |
-| ---------------- | --------------- | --------- | ------------------------------------------------------------------------------------------------ |
+|------------------|-----------------|-----------|--------------------------------------------------------------------------------------------------|
 | Theta            | Radians         | Float     | Represents the angle relative to the heading in which to travel                                  |
 | Feed             | m/s             | Float     | Represents the speed in meters per second at which the robot should travel                       |
 | Omega            | Radians/s       | Float     | The rate at which the robot should rotate about is center                                        |
@@ -15,7 +15,7 @@ requires 3 components:
 Thus, the format of the information sent over UART to the should be in a format
 like such:
 
-> T####F####W####K
+> TTTTFFFFWWWWK
 
 The protocol is actually a bit unintuitive since the 4 bytes used by the
 characters in the string can actually be used to represent an entire 32 bit

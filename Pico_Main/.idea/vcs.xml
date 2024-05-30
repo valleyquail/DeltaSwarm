@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$/.." vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../ESP_Main/components/Adafruit_NeoPixel" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../ESP_Main/components/micro_ros_espidf_component" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/include/BasicLinearAlgebra" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../esp32-arduino-libs" vcs="Git" />
+  </component>
+</project>

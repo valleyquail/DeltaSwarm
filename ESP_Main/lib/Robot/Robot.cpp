@@ -3,15 +3,15 @@
 //
 
 #include "Robot.h"
-#include "../Communication_Protocols/I2C.h"
+#include "../Communication_Protocols/i2c_management.h"
 
 
 Robot::Robot(int robot_number) { this->robot_number = robot_number; }
 
-bool Robot::init()
-{
+bool Robot::init() {
     // Initialize the Pico I2C
-    bool pico_init_successful = pico_i2c_init();
-    if (!pico_init_successful) return false;
+
+    if (!pico_i2c_init()) return false;
+
     return true;
 }

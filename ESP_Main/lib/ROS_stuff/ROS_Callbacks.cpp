@@ -2,7 +2,7 @@
 // Created by nikesh on 3/24/24.
 //
 
-#include "ROS_Callbacks.h"
+
 #include "../Robot/Robot.h"
 
 #include <rcl/error_handling.h>
@@ -19,71 +19,15 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#define RCCHECK(fn)                                                                      \
-    {                                                                                    \
-        rcl_ret_t temp_rc = fn;                                                          \
-        if ((temp_rc != RCL_RET_OK))                                                     \
-        {                                                                                \
-            printf("Failed status on line %d: %d. Aborting.\n", __LINE__, (int)temp_rc); \
-            vTaskDelete(NULL);                                                           \
-        }                                                                                \
-    }
-#define RCSOFTCHECK(fn)                                                                    \
-    {                                                                                      \
-        rcl_ret_t temp_rc = fn;                                                            \
-        if ((temp_rc != RCL_RET_OK))                                                       \
-        {                                                                                  \
-            printf("Failed status on line %d: %d. Continuing.\n", __LINE__, (int)temp_rc); \
-        }                                                                                  \
-    }
 
-void do_nothing(const void* msgin)
-{
-    // Do nothing
-}
 rcl_subscription_t movement_subscriber;
 
 custom_messages__msg__RobotMovement robot_movement_msg;
 
-void xLaunch_ROS_Callbacks(const void* robot)
-{
-    rcl_allocator_t allocator = rcl_get_default_allocator();
-    rclc_support_t support;
-    rclc_executor_t executor = rclc_executor_get_zero_initialized_executor();
+void register_ros_callbacks(const void *robot) {
 
-    rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
-    RCCHECK(rcl_init_options_init(&init_options, allocator));
+    rclc_executor_add_subscription(&executor, &movement_subscriber, &robot_movement_msg,
+                                   &do_nothing, ON_NEW_DATA);
 
-#ifdef CONFIG_MICRO_ROS_ESP_XRCE_DDS_MIDDLEWARE
-    rmw_init_options_t* rmw_options = rcl_init_options_get_rmw_init_options(&init_options);
-
-    // Static Agent IP and port can be used instead of autodisvery.
-    RCCHECK(rmw_uros_options_set_udp_address(CONFIG_MICRO_ROS_AGENT_IP, CONFIG_MICRO_ROS_AGENT_PORT, rmw_options));
-    // RCCHECK(rmw_uros_discover_agent(rmw_options));
-#endif
-
-    // create init_options
-    RCCHECK(rclc_support_init_with_options(&support, 0, NULL, &init_options, &allocator));
-
-    // create node
-    rcl_node_t node;
-    RCCHECK(rclc_node_init_default(&node, "multithread_node", "", &support));
-
-
-    RCCHECK(rclc_executor_init(&executor, &support.context, 2, &allocator));
-    unsigned int rcl_wait_timeout = 1000; // in ms
-    RCCHECK(rclc_executor_set_timeout(&executor, RCL_MS_TO_NS(rcl_wait_timeout)));
-
-    rclc_executor_add_subscription(&executor, &movement_subscriber, &robot_movement_msg, &do_nothing, ON_NEW_DATA);
-
-    while (1)
-    {
-        rclc_executor_spin(&executor);
-    }
-
-    // free resources
-    RCCHECK(rcl_subscription_fini(&movement_subscriber, &node));
-    RCCHECK(rcl_node_fini(&node));
-
-    vTaskDelete(NULL);
 }
+

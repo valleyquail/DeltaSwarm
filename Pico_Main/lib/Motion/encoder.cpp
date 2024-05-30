@@ -1,10 +1,9 @@
 #include "motor.h"
 #include <Arduino.h>
 #include <stdio.h>
-#include <stdlib.h>
+
 #include "RPi_Pico_TimerInterrupt.h"
 #include "../../include/config.h"
-#include "../../include/pin_definitions.h"
 #include "pico/stdlib.h"
 
 // Motors are defined in the motion_controller.cpp file for the drive motors
@@ -12,16 +11,12 @@
 // class. Actuator motors will likely be a child class of the Motor class since
 // they will have additional functions
 
-extern Motor motor1;
-extern Motor motor2;
-extern Motor motor3;
 
-void encoderInterruptA(void *motor_instance);
-void encoderInterruptB(void *motor_instance);
 
 void gpio_callback(uint gpio, uint32_t events)
 {
-    // Put the GPIO event(s) that just happened into event_str
+    (void) events;
+    // Put the GPIO event(s) that just happened into event_str,
     // so we can print it
 #ifdef DEBUG
     Serial.printf("GPIO %d had an event\n", gpio);

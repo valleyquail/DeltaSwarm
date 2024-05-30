@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "../../include/pin_definitions.h"
+#include "../../include/config.h"
 
 /**
  * @brief This class is purely used for debugging purposes. It is used to send and receive data from the serial monitor.

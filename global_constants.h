@@ -1,3 +1,6 @@
+#ifndef _GLOBAL_CONSTANTS_H_
+#define _GLOBAL_CONSTANTS_H_
+
 #define PI_AS_HOST 0
 
 #define PICO_BAUD_RATE 115200
@@ -18,15 +21,26 @@
 #define NUM_PICO_REGISTERS 3
 // Motor command size and address at the pico
 // This is information that is sent to the pico
-#define MOTOR_COMMAND_SIZE 16
+#define MOTOR_COMMAND_SIZE 13
 #define PICO_MOTOR_COMMAND_REGISTER 0x00
 
 // This is information that will be sent from the pico
-#define ENCODER_COMMAND_SIZE 16
-#define PICO_ENCODER_COMMAND_REGISTER 0x01
+#define ODOMETRY_COMMAND_SIZE 16
+#define PICO_ODOMETRY_COMMAND_REGISTER 0x01
 
-#define IMU_COMMAND_SIZE 16
-#define PICO_IMU_COMMAND_REGISTER 0x02
+//TODO: Implement encoder count dependent upon the number of additional motors
+
+#define ENCODER_COMMAND_SIZE 16
+#define PICO_ENCODER_COUNT_COMMAND_REGISTER 0x02
 
 // Normal rate
 #define PICO_I2C_FREQ 100000
+
+#define PICO_STATUS_REGISTER 0x0F
+enum STATUS {
+    OK = 0,
+    ERROR = 1
+};
+
+
+#endif

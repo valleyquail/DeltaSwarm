@@ -1,8 +1,7 @@
 #include "motion_controller.h"
 #include "../../include/config.h"
-#include <math.h>
+#include <cmath>
 #include "RPi_Pico_TimerInterrupt.h"
-#include "../../include/pin_definitions.h"
 #include "motor.h"
 #include "encoder.h"
 #include "../I2C_Control/i2c_control.h"
@@ -34,6 +33,7 @@ bool timerISR(struct repeating_timer *t);
 
 MotionController::MotionController()
 {
+
     // Set PID values for each motor
     motor1.setPIDVals(MOTOR1_KP, MOTOR1_KI, MOTOR1_KD);
     motor2.setPIDVals(MOTOR2_KP, MOTOR2_KI, MOTOR2_KD);
@@ -75,14 +75,14 @@ void MotionController::setSpeed(float speed, float theta, float omega)
     motor3.setTargetSpeed(encoderSpeed3);
 }
 
-void MotionController::setSpeedFromI2C(uint8_t *speeds)
+void MotionController::setSpeedFromI2C(const uint8_t *speeds)
 {
     // Bit shift the speeds to get the float values
-    float speed = speeds[1] << 24 | speeds[2] << 16 | speeds[3] << 8 | speeds[4];
-    float theta = speeds[6] << 24 | speeds[7] << 16 | speeds[8] << 8 | speeds[9];
-    float omega = speeds[11] << 24 | speeds[12] << 16 | speeds[13] << 8 | speeds[14];
+    float speed = 0xFFFF & (speeds[0] << 24 | speeds[1] << 16 | speeds[2] << 8 | speeds[3]);
+    float theta = 0xFFFF & (speeds[4] << 24 | speeds[5] << 16 | speeds[6] << 8 | speeds[7]);
+    float omega = 0xFFFF & (speeds[8] << 24 | speeds[9] << 16 | speeds[10] << 8 | speeds[11]);
     // Get a boolean value for if the robot should keep its orientation
-    // bool orientation = speeds[16] & 0x01;
+     bool orientation = speeds[16] & 0x01;
 #ifdef DEBUG
     Serial.printf("Speed: %f, Theta: %f, Omega: %f\n", speed, theta, omega);
 #endif
