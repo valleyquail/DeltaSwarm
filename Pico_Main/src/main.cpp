@@ -16,61 +16,65 @@
 MotionController motionController = MotionController();
 StatusLED statusLED = StatusLED(NEOPIXEL_PIN);
 
-void setup()
-{
-  Serial.begin(115200);
-  statusLED.SetError();
+void setup() {
+    Serial.begin(115200);
+    statusLED.SetError();
 
-  for (int i = 0; i < 100; ++i)
-  {
-    Serial.printf("Launching in %i ms\n", (100 - i) * 20);
-    sleep_ms(20);
-  }
+    for (int i = 0; i < 100; ++i) {
+        Serial.printf("Launching in %i ms\n", (100 - i) * 20);
+        sleep_ms(20);
+    }
 
-  statusLED.SetWarning();
-  delay(1000);
+    statusLED.SetWarning();
+    delay(1000);
 
-  Serial.printf("Testing?");
-  delay(1000);
-  Serial.printf("Testing?");
-  motionController.setSpeed(0.5, 0, 0);
-  Serial.printf("Testing?");
+    Serial.printf("Testing?");
+    delay(1000);
+    Serial.printf("Testing?");
+    motionController.setSpeed(0.5, 0, 0);
+    Serial.printf("Testing?");
 #if PICO_USE_USB_SERIAL
-  SerialDebugger serialDebugger = SerialDebugger();
-  // statusLED.SetOK();
-  while (true)
-  {
-    if (!Serial.available())
-      serialDebugger.receive();
-    else
-      delay(20);
-  }
+    SerialDebugger serialDebugger = SerialDebugger();
+    // statusLED.SetOK();
+    while (true)
+    {
+      if (!Serial.available())
+        serialDebugger.receive();
+      else
+        delay(20);
+    }
 #endif
 
-  // For testing without the ESP
-  // #ifdef NO_ESP_CONNECTION
-  Serial.printf("I2C from ESP\n");
-  register_i2c_function(&motionCallback, PICO_MOTOR_COMMAND_REGISTER);
-  initPicoPeriph();
-  // #endif
+    // For testing without the ESP
+    // #ifdef NO_ESP_CONNECTION
+    Serial.printf("I2C from ESP\n");
+    register_i2c_function(reinterpret_cast<i2c_response_t>(&motionCallback), PICO_MOTOR_COMMAND_REGISTER);
+    initPicoPeriph();
+    // #endif
 
 #ifdef NO_IMU
-  Serial.printf("IMU\n");
-  IMU_I2C *imu = new IMU_I2C();
+    Serial.printf("IMU\n");
+    IMU_I2C *imu = new IMU_I2C();
 #endif
-  statusLED.SetOK();
+    statusLED.SetOK();
+
 }
 
-void loop()
-{
+void loop() {
 
-  Serial.printf("looped\n");
+    Serial.printf("looped\n");
+    motionController.setSpeed(0.5, 0, 0);
+    delay(1000);
+    for (int i = 0; i < 4; i++) {
+        motionController.runPIDUpdate();
+        delay(250);
+    }
+    motionController.setSpeed(-0.5, 0, 0);
+    delay(1000);
+    for (int i = 0; i < 4; i++) {
+        motionController.runPIDUpdate();
+        delay(250);
+    }
 
-  delay(1000);
-  motionController.setSpeed(0.5, 0, 0);
-  delay(1000);
-  motionController.setSpeed(-0.5, 0, 0);
-  // motionController.runPIDUpdate();
-
-  // put your main code here, to run repeatedly:
+    // put your main code here, to run repeatedly:
 }

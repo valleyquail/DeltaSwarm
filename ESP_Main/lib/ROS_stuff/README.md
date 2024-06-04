@@ -13,6 +13,11 @@ organized in the following way:
 - `ROS_launch.h`: This file contains the main thread for launching and configuring the ROS nodes. It houses the main
   thread for launching and configuring the ROS nodes.
 
+# Note
+
+You need to go into the microros component and change the `microros_agent` to the correct value for your system.
+Currently, the max number of subscriptions and publishers are set to 8
+
 ## TODO:
 
 - [ ] Add more ROS configuration files and scripts.

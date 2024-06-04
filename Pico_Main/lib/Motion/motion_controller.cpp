@@ -29,16 +29,15 @@ Motor motor2(MOTOR2_A, MOTOR2_B, MOTOR2_A_ENC, MOTOR2_B_ENC);
 Motor motor3(MOTOR3_A, MOTOR3_B, MOTOR3_A_ENC, MOTOR3_B_ENC);
 
 RPI_PICO_TimerInterrupt timer(0);
+
 bool timerISR(struct repeating_timer *t);
 
-MotionController::MotionController()
-{
+MotionController::MotionController() {
 
     // Set PID values for each motor
     motor1.setPIDVals(MOTOR1_KP, MOTOR1_KI, MOTOR1_KD);
     motor2.setPIDVals(MOTOR2_KP, MOTOR2_KI, MOTOR2_KD);
     motor3.setPIDVals(MOTOR3_KP, MOTOR3_KI, MOTOR3_KD);
-
     // Initialize the encoder interrupt timer
     timer.attachInterruptInterval(TIMER_INTERVAL_MS * 1000, timerISR);
     // Set the GPIO pins to trigger the encoder interrupts using the interrupt
@@ -46,28 +45,31 @@ MotionController::MotionController()
     gpio_set_irq_enabled_with_callback(MOTOR1_A_ENC, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true, &gpio_callback);
 }
 
-inline int speedToEncoder(float speed)
-{
+inline int speedToEncoder(float speed) {
     // Convert the speed to the encoder speed
-    return (int)floor(speed * ENCODER_COUNTS_PER_REV / (2 * PI * WHEEL_RADIUS));
+    return (int) floor(speed * ENCODER_COUNTS_PER_REV / (2 * PI * WHEEL_RADIUS));
 }
+
 // TODO: Implement a keep orientation option so that it either arcs or it rotates
 // to keep the same orientation while moving forward
-void MotionController::setSpeed(float speed, float theta, float omega)
-{
+void MotionController::setSpeed(float speed, float theta, float omega) {
+    auto theta_one = (float) (theta + 2 * PI / 3);
+    auto theta_two = (float) (theta - 2 * PI / 3);
     // Convert the speed, theta, and omega to the speed of each wheel
     float v1 = speed * cos(theta) - omega * ROBOT_DIAMETER / 2;
-    float v2 = speed * cos(theta + 2 * PI / 3) - omega * ROBOT_DIAMETER / 2;
-    float v3 = speed * cos(theta - 2 * PI / 3) - omega * ROBOT_DIAMETER / 2;
+    float v2 = speed * cos(theta_one) - omega * ROBOT_DIAMETER / 2;
+    float v3 = speed * cos(theta_two) - omega * ROBOT_DIAMETER / 2;
 
     // Convert the speed of each wheel to the encoder speed
     int encoderSpeed1 = speedToEncoder(v1);
     int encoderSpeed2 = speedToEncoder(v2);
     int encoderSpeed3 = speedToEncoder(v3);
-    // #ifdef DEBUG
-    //     Serial.printf("Speeds: %f, %f, %f\n", v1, v2, v3);
-    //     Serial.printf("Encoder speeds: E1: %i, E2: %i, E3: %i\n\n", encoderSpeed1, encoderSpeed2, encoderSpeed3);
-    // #endif
+#ifdef DEBUG
+//    Serial.printf("Motor A: %x, Motor B: %x, Motor C: %x\n", &motor1.curr_movement_encoder_count,
+//                  &motor2.curr_movement_encoder_count, &motor3.curr_movement_encoder_count);
+    Serial.printf("Speeds: %f, %f, %f\n", v1, v2, v3);
+    Serial.printf("Encoder speeds: E1: %i, E2: %i, E3: %i\n\n", encoderSpeed1, encoderSpeed2, encoderSpeed3);
+#endif
     // Set the speed of each wheel
 
     motor1.setTargetSpeed(encoderSpeed1);
@@ -75,22 +77,20 @@ void MotionController::setSpeed(float speed, float theta, float omega)
     motor3.setTargetSpeed(encoderSpeed3);
 }
 
-void MotionController::setSpeedFromI2C(const uint8_t *speeds)
-{
+void MotionController::setSpeedFromI2C(const uint8_t *speeds) {
     // Bit shift the speeds to get the float values
     float speed = 0xFFFF & (speeds[0] << 24 | speeds[1] << 16 | speeds[2] << 8 | speeds[3]);
     float theta = 0xFFFF & (speeds[4] << 24 | speeds[5] << 16 | speeds[6] << 8 | speeds[7]);
     float omega = 0xFFFF & (speeds[8] << 24 | speeds[9] << 16 | speeds[10] << 8 | speeds[11]);
     // Get a boolean value for if the robot should keep its orientation
-     bool orientation = speeds[16] & 0x01;
+    bool orientation = speeds[16] & 0x01;
 #ifdef DEBUG
     Serial.printf("Speed: %f, Theta: %f, Omega: %f\n", speed, theta, omega);
 #endif
     setSpeed(speed, theta, omega);
 }
 
-void MotionController::stop()
-{
+void MotionController::stop() {
 #ifdef DEBUG
     Serial.printf("Stopping\n");
 #endif
@@ -99,15 +99,13 @@ void MotionController::stop()
     motor3.setTargetSpeed(0);
 }
 
-void MotionController::brake()
-{
+void MotionController::brake() {
     motor1.brake();
     motor2.brake();
     motor3.brake();
 }
 
-int *MotionController::getEncoderValues()
-{
+int *MotionController::getEncoderValues() {
     int *encoderValues = new int[3];
     encoderValues[0] = motor1.getEncoderCount();
     encoderValues[1] = motor2.getEncoderCount();
@@ -115,8 +113,7 @@ int *MotionController::getEncoderValues()
     return encoderValues;
 }
 
-void MotionController::runPIDUpdate()
-{
+void MotionController::runPIDUpdate() {
 #ifdef DEBUG
     Serial.printf("Running PID update\n");
 #endif
@@ -125,9 +122,8 @@ void MotionController::runPIDUpdate()
     motor3.updateSpeed();
 }
 
-bool timerISR(struct repeating_timer *t)
-{
-    (void)t;
+bool timerISR(struct repeating_timer *t) {
+    (void) t;
     calcEncoderDelta(&motor1);
     calcEncoderDelta(&motor2);
     calcEncoderDelta(&motor3);

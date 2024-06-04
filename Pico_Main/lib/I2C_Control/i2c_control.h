@@ -60,7 +60,7 @@ void initPicoController();
 
 //I2C callbacks
 
-void motionCallback(int packet_address);
+void motionCallback();
 
 
 #ifdef __cplusplus

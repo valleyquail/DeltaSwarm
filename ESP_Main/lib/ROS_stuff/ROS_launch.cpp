@@ -93,7 +93,7 @@ void xLaunchROSNode(void *args) {
 
         // Static Agent IP and port can be used instead of autodisvery.
         RCCHECK(rmw_uros_options_set_udp_address(CONFIG_MICRO_ROS_AGENT_IP, CONFIG_MICRO_ROS_AGENT_PORT, rmw_options));
-        // RCCHECK(rmw_uros_discover_agent(rmw_options));
+         RCCHECK(rmw_uros_discover_agent(rmw_options));
 #endif
     //Init Node
     RCCHECK(rclc_node_init_default(&node, node_name, "", &support));
