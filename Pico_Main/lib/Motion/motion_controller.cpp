@@ -64,7 +64,7 @@ void MotionController::setSpeed(float speed, float theta, float omega) {
     int encoderSpeed1 = speedToEncoder(v1);
     int encoderSpeed2 = speedToEncoder(v2);
     int encoderSpeed3 = speedToEncoder(v3);
-#ifdef DEBUG
+#ifdef ENCODER_DEBUG
 //    Serial.printf("Motor A: %x, Motor B: %x, Motor C: %x\n", &motor1.curr_movement_encoder_count,
 //                  &motor2.curr_movement_encoder_count, &motor3.curr_movement_encoder_count);
     Serial.printf("Speeds: %f, %f, %f\n", v1, v2, v3);

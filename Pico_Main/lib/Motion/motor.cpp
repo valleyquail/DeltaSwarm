@@ -11,6 +11,7 @@ Motor::Motor(uint8_t pwmPinA, uint8_t pwmPinB, uint8_t encoderPinA, uint8_t enco
     pwm_pin_B = pwmPinB;
     encoder_pin_A = encoderPinA;
     encoder_pin_B = encoderPinB;
+    prev_state = 0;
     gpio_init(encoder_pin_A);
     gpio_init(encoder_pin_B);
     gpio_set_dir(encoder_pin_A, GPIO_IN);
@@ -36,7 +37,7 @@ void Motor::setTargetSpeed(int speed) {
     lastError = 0;
     target_speed = speed;
     setSpeed(speed);
-#ifdef DEBUG
+#ifdef ENCODER_DEBUG
     Serial.printf("New speed set: %i\n", speed);
     Serial.printf("Total encoder count: %ld\n", total_encoder_count);
 #endif
@@ -55,7 +56,7 @@ void Motor::setSpeed(int speed) {
     else if (speed < 0) {
         pwmA->setPWM_Int(pwm_pin_A, PWM_FREQ, 0);
         pwmB->setPWM_Int(pwm_pin_B, PWM_FREQ, -speed);
-#ifdef DEBUG
+#ifdef ENCODER_DEBUG
         Serial.println("Reversing\n");
 #endif
     }
@@ -63,11 +64,11 @@ void Motor::setSpeed(int speed) {
     else {
         pwmA->setPWM_Int(pwm_pin_A, PWM_FREQ, speed);
         pwmB->setPWM_Int(pwm_pin_B, PWM_FREQ, 0);
-#ifdef DEBUG
+#ifdef ENCODER_DEBUG
         Serial.println("Forward\n");
 #endif
     }
-#ifdef DEBUG
+#ifdef ENCODER_DEBUG
     Serial.printf("Speed set: %i\n", speed);
 #endif
 }
@@ -82,7 +83,7 @@ void Motor::brake() {
 
 // PID Control function
 void Motor::updateSpeed() {
-#ifdef DEBUG
+#ifdef ENCODER_DEBUG
     if (isNewSpeed) {
         Serial.printf("Mode: %i\n", isNewSpeed);
         Serial.printf("locations of isnewspeed: %p\n", &isNewSpeed);
@@ -102,8 +103,8 @@ void Motor::updateSpeed() {
     float output = kp * error + ki * sumError + kd * dError;
     // Set the PWM
     setSpeed((int) output);
-#if defined(DEBUG) || defined(PICO_USE_USB_SERIAL)
-    Serial.printf("Motor on pins: %d\t%d\n", pwm_pin_A, pwm_pin_B);
+#if defined(ENCODER_DEBUG) || defined(PICO_USE_USB_SERIAL)
+    Serial.printf("Motor on pins: %d %d\n", pwm_pin_A, pwm_pin_B);
     Serial.printf("PID Speed: %d\n", encoderSpeed);
     Serial.printf("Error: %f\n", error);
     Serial.printf("Current encoder counts: %i\n", curr_movement_encoder_count);

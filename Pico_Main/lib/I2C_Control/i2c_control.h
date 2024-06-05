@@ -1,22 +1,24 @@
 
 #ifdef __cplusplus
-extern "C"
-{
+
 #endif
 
 #include <pico/stdio.h>
 #include <pico/stdlib.h>
 #include "../../include/config.h"
+#include "unordered_map"
 
 /**
  * @brief This is a an API that allows users to register new I2C actions without having to modify some functions directly.
  * This involves some function pointer wizardry that will compile into a function that accounts for adding a I2C response to an
  * incoming instruction
+ *
+ * NOTE: All I2C function registrations much be called before the initPicoPeriph() function is called!!!
  */
 
-typedef void (*i2c_response_t)();
+typedef void (*i2c_response_t)(int8_t packet_index);
 
-void register_i2c_function(i2c_response_t callback, int packet_address);
+void register_i2c_function(i2c_response_t callback, int8_t packet_address);
 
 // This is used as a general structure to maintain data handling throughout the
 // program. It has a few uses:
@@ -45,24 +47,14 @@ struct DataPacket {
 
 extern struct DataPacket data_packets[];
 
-// Represents the "registers" the ESP can read from
-// In reality, these are indices into the data_packets array that stores the values
-enum I2C_COMMANDS {
-    MOTOR_SPEEDS = PICO_MOTOR_COMMAND_REGISTER,
-    ODOMETRY = PICO_ODOMETRY_COMMAND_REGISTER,
-    ENCODER_COUNT = PICO_ENCODER_COUNT_COMMAND_REGISTER,
-
-    NONE = 127,
-};
 
 void initPicoPeriph();
+
 void initPicoController();
 
+
+
 //I2C callbacks
+void motionCallback(int8_t packet_index);
 
-void motionCallback();
 
-
-#ifdef __cplusplus
-}
-#endif
