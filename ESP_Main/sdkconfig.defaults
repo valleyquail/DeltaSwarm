@@ -1,10 +1,4 @@
 #
-# Arduino ESP32
-#
-CONFIG_AUTOSTART_ARDUINO=y
-# end of Arduino ESP32
-
-#
 # FREERTOS
 #
 CONFIG_FREERTOS_HZ=1000

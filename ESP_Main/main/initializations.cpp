@@ -1,9 +1,8 @@
-#include <Arduino.h>
+
 #include "initializations.h"
 
 #include "../include/config.h"
 
-void initESP()
-{
-    Serial.println("Initializing ESP32");
+void initESP() {
+//    Serial.println("Initializing ESP32");
 }

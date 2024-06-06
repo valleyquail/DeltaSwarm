@@ -1,28 +1,25 @@
-#include <Adafruit_NeoPixel.h>
-#include <Arduino.h>
+#ifndef STATUS_LED_H
+#define STATUS_LED_H
 
-// TODO: Remove Arduino component since it makes everything a lot slower due to
-// the additional components that are included, specifically the RTOS
+#include <stdio.h>
 
-class StatusLED
-{
-private:
-    Adafruit_NeoPixel pixels;
-    const uint8_t statusLED_index = 0;
-    const uint8_t batteryLED_index = 1;
 
-public:
-    StatusLED(uint8_t pin);
-    // Red
-    void SetError();
-    // Yellow
-    void SetWarning();
-    // Green
-    void SetOK();
-    // Off
-    void SetOff();
+void initStatusLED(int8_t pin);
 
-    void SetBattery(uint8_t level);
-};
+// Red
+void statusLEDSetError();
 
-extern StatusLED statusLED;
+// Yellow
+void statusLEDSetWarning();
+
+// Green
+void statusLEDSetOK();
+
+// Off
+void SetLEDsOff();
+
+void batteryLEDSetColor(uint8_t level);
+
+#endif
+
+

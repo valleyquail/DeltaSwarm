@@ -57,24 +57,25 @@ void setup() {
     IMU_I2C *imu = new IMU_I2C();
 #endif
     statusLED.SetOK();
-
 }
 
 void loop() {
 
     Serial.printf("looped\n");
-    motionController.setSpeed(0.5, 0, 0);
+//    motionController.runPIDUpdate();
     delay(1000);
-    for (int i = 0; i < 4; i++) {
-        motionController.runPIDUpdate();
-        delay(250);
-    }
-    motionController.setSpeed(-0.5, 0, 0);
-    delay(1000);
-    for (int i = 0; i < 4; i++) {
-        motionController.runPIDUpdate();
-        delay(250);
-    }
+//    motionController.setSpeed(0.5, 0, 0);
+//    delay(1000);
+//    for (int i = 0; i < 4; i++) {
+//        motionController.runPIDUpdate();
+//        delay(250);
+//    }
+//    motionController.setSpeed(-0.5, 0, 0);
+//    delay(1000);
+//    for (int i = 0; i < 4; i++) {
+//        motionController.runPIDUpdate();
+//        delay(250);
+//    }
 
     // put your main code here, to run repeatedly:
 }

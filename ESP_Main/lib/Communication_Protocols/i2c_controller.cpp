@@ -102,11 +102,15 @@ void picoSendMovement(float speed, float theta, float omega, bool orientation) {
     // Converts the floats raw bytes and then copies the information into the buffer to send to the pico for calling
     //  sending over the desired motion
     motorCommandBuffer[0] = PICO_MOTOR_COMMAND_REGISTER;
-    memcpy(&motorCommandBuffer[1], (uint8_t * ) & speed, 4);
-    memcpy(&motorCommandBuffer[5], (uint8_t * ) & theta, 4);
-    memcpy(&motorCommandBuffer[9], (uint8_t * ) & omega, 4);
+    memcpy(motorCommandBuffer + 1, (uint8_t * ) & speed, 4);
+    memcpy(motorCommandBuffer + 5, (uint8_t * ) & theta, 4);
+    memcpy(motorCommandBuffer + 9, (uint8_t * ) & omega, 4);
 #ifdef DEBUG
     printf("Motor command: %f, %f, %f\n", speed, theta, omega);
+    for (int i = 0; i < MOTOR_COMMAND_SIZE; i++) {
+        printf("%d: %02x, ", i, motorCommandBuffer[i]);
+    }
+    printf("\n");
 #endif
     if (orientation) {
         motorCommandBuffer[14] = 'K';
@@ -148,8 +152,8 @@ float *requestOdometry() {
     // Since the information is stored as floats but sent over as bytes, this converts the raw bytes into floats by
     // directly copying over the bytes into an array of floats that contains the requred information
     // TODO (nikesh): Check if the odometry is being sent correctly due to Endianness
-    memcpy(&robotOdometry[0], &odometryBuffer[0], 4);
-    memcpy(&robotOdometry[1], &odometryBuffer[4], 4);
-    memcpy(&robotOdometry[2], &odometryBuffer[8], 4);
+    memcpy(robotOdometry, odometryBuffer, 4);
+    memcpy(robotOdometry + 1, odometryBuffer + 4, 4);
+    memcpy(robotOdometry + 2, odometryBuffer + 8, 4);
     return robotOdometry;
 }

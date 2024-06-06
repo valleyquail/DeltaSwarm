@@ -42,7 +42,7 @@ struct DataPacket data_packets[NUM_PICO_REGISTERS];
 static void __not_in_flash_func(i2c0_irq_handler)() {
     uint32_t status = i2c0->hw->intr_stat;
 #ifdef I2C_DEBUG
-    Serial.printf("Interrupt status: %lx\n", status);
+//    Serial.printf("Intr Status: %lx\n", status);
 #endif
     // Check to see if we have received data from the I2C controller
     if (status & I2C_IC_INTR_STAT_R_RX_FULL_BITS) {
@@ -58,19 +58,19 @@ static void __not_in_flash_func(i2c0_irq_handler)() {
             data_packets[packet_index].status.message_sent = false;
             data_packets[packet_index].index = 0;
 #ifdef I2C_DEBUG
-            Serial.printf("Received address: %i\n", packet_address);
+            Serial.printf("Rec addr: %i\n", packet_address);
 #endif
         } else {
             // If not 1st byte then store the data in the buffer
             // and increment the address to point to next byte
 #ifdef I2C_DEBUG
-            uint8_t old_data = data_packets[packet_index].buffer[data_packets[packet_index].index];
-                        data_packets[packet_index].buffer[data_packets[packet_index].index] = (uint8_t) (status &
-                                                                                                         I2C_IC_DATA_CMD_DAT_BITS);
-                        Serial.printf("Old data: %i\n", old_data);
-                        Serial.printf("Received data: %i\n", data_packets[packet_index].buffer[data_packets[packet_index].index]);
+//            uint8_t old_data = data_packets[packet_index].buffer[data_packets[packet_index].index];
+            data_packets[packet_index].buffer[data_packets[packet_index].index] = (uint8_t) (value &
+                                                                                             I2C_IC_DATA_CMD_DAT_BITS);
+//            Serial.printf("Old: %02x\n", old_data);
+            Serial.printf("New: %02x\n", data_packets[packet_index].buffer[data_packets[packet_index].index]);
 #else
-            data_packets[packet_index].buffer[data_packets[packet_index].index] = (uint8_t) (status &
+            data_packets[packet_index].buffer[data_packets[packet_index].index] = (uint8_t) (value &
                                                                                              I2C_IC_DATA_CMD_DAT_BITS);
 #endif
             data_packets[packet_index].index++;
@@ -84,7 +84,7 @@ static void __not_in_flash_func(i2c0_irq_handler)() {
         i2c0->hw->data_cmd = (uint32_t) data_packets[packet_index].buffer[data_packets[packet_index].index];
 
 #ifdef I2C_DEBUG
-        Serial.printf("Sending data: %i\n", data_packets[packet_index].buffer[data_packets[packet_index].index]);
+        Serial.printf("Sending: %i\n", data_packets[packet_index].buffer[data_packets[packet_index].index]);
 #endif
         data_packets[packet_index].index++;
         // Clear the interrupt

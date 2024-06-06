@@ -21,6 +21,7 @@
         "initializer_list": "c",
         "regex": "c",
         "esp_netif.h": "c",
-        "esp_event.h": "c"
+        "esp_event.h": "c",
+        "rmt_encoder.h": "c"
     }
 }
