@@ -26,7 +26,7 @@ const float MOTOR3_KD = 0.1;
 
 Motor motor1(MOTOR1_A, MOTOR1_B, MOTOR1_A_ENC, MOTOR1_B_ENC);
 Motor motor2(MOTOR2_A, MOTOR2_B, MOTOR2_A_ENC, MOTOR2_B_ENC);
-Motor motor3(MOTOR3_A, MOTOR3_B, MOTOR3_A_ENC, MOTOR3_B_ENC);
+Motor motor3(MOTOR3_B, MOTOR3_A, MOTOR3_A_ENC, MOTOR3_B_ENC);
 
 RPI_PICO_TimerInterrupt timer(0);
 
@@ -53,18 +53,19 @@ inline int speedToEncoder(float speed) {
 // TODO: Implement a keep orientation option so that it either arcs or it rotates
 // to keep the same orientation while moving forward
 void MotionController::setSpeed(float speed, float theta, float omega) {
-    auto theta_one = (float) (theta + 2 * PI / 3);
-    auto theta_two = (float) (theta - 2 * PI / 3);
+    auto theta_one = (float) (theta + PI / 3);
+    auto theta_two = (float) (theta - PI / 3);
     // Convert the speed, theta, and omega to the speed of each wheel
-    float v1 = speed * cos(theta) - omega * ROBOT_DIAMETER / 2;
-    float v2 = speed * cos(theta_one) - omega * ROBOT_DIAMETER / 2;
-    float v3 = speed * cos(theta_two) - omega * ROBOT_DIAMETER / 2;
+    float v1 = speed * sin(theta) - omega * ROBOT_DIAMETER / 2;
+    float v2 = speed * sin(theta_one) - omega * ROBOT_DIAMETER / 2;
+    float v3 = speed * sin(theta_two) - omega * ROBOT_DIAMETER / 2;
 
     // Convert the speed of each wheel to the encoder speed
     int encoderSpeed1 = speedToEncoder(v1);
     int encoderSpeed2 = speedToEncoder(v2);
     int encoderSpeed3 = speedToEncoder(v3);
-#ifdef ENCODER_DEBUG
+#ifdef SPEEDS_DEBUG
+
 //    Serial.printf("Motor A: %x, Motor B: %x, Motor C: %x\n", &motor1.curr_movement_encoder_count,
 //                  &motor2.curr_movement_encoder_count, &motor3.curr_movement_encoder_count);
     Serial.printf("Speeds: %f, %f, %f\n", v1, v2, v3);

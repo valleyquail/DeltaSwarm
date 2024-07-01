@@ -74,14 +74,13 @@ bool pico_i2c_init() {
     uint8_t check_ok[] = {'x', 'x'};
     // Write to the Pico's motor command address and then check that it receives
     // the 'ok' buffer to make sure that it is communicating properly
-    ESP_ERROR_CHECK(i2c_master_write_read_device(i2c_master_port, PICO_ADDRESS, &reg_addr, 1, check_ok, 2,
-                                                 I2C_MASTER_TIMEOUT_MS / configTICK_RATE_HZ));
+    i2c_master_write_read_device(i2c_master_port, PICO_ADDRESS, &reg_addr, 1, check_ok, 2,
+                                 I2C_MASTER_TIMEOUT_MS / configTICK_RATE_HZ);
     if ((char) check_ok[0] == 'O' && (char) check_ok[1] == 'K') {
         printf("connection to the pico is working\n");
         return true;
     }
-
-    printf("connection to the pico is not working: %s\n", check_ok);
+    printf("connection to the pico is not working: %c %c\n", check_ok[0], check_ok[1]);
 
     return false;
 }

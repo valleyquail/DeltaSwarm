@@ -20,7 +20,9 @@ extern "C" void app_main(void) {
         vTaskDelay(20 / portTICK_PERIOD_MS);
     }
     printf("Starting up\n");
+    vTaskDelay(100 / portTICK_PERIOD_MS);
     initStatusLED(NEOPIXEL_PIN);
+
     statusLEDSetWarning();
 
     esp_base_mac_addr_get(hardcoded_mac_address);
@@ -28,7 +30,7 @@ extern "C" void app_main(void) {
            hardcoded_mac_address[2], hardcoded_mac_address[3], hardcoded_mac_address[4],
            hardcoded_mac_address[5]);
     //Wait for the pico to boot properly
-    vTaskDelay(100 / portTICK_PERIOD_MS);
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
     bool init_successful = pico_i2c_init();
     if (!init_successful)
         statusLEDSetError();
@@ -40,9 +42,13 @@ extern "C" void app_main(void) {
     bool flip_speed = true;
     for (;;) {
         if (flip_speed) {
-            picoSendMovement(0.5, 0, 2.1, true);
+            picoSendMovement(0.5, 1, 0, true);
+            statusLEDSetOK();
+            printf("Sent movement flipped\n");
         } else {
-            picoSendMovement(-0.5, 0, -2.1, true);
+            picoSendMovement(-0.5, 1, 0, true);
+            SetStatusLEDOff();
+            printf("Sent movement unflipped\n");
         }
         flip_speed = !flip_speed;
         vTaskDelay(5000 / portTICK_PERIOD_MS);

@@ -52,6 +52,7 @@ void initPicoPeriph();
 
 void initPicoController();
 
+void bus_scan();
 
 
 //I2C callbacks

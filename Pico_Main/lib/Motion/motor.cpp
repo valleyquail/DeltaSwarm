@@ -46,7 +46,7 @@ void Motor::setTargetSpeed(int speed) {
 
 void Motor::setSpeed(int speed) {
     //TODO: Get rid of this since this scaling will be taken care of by the PID controller
-    speed *= 75;
+    speed *= 25;
     // If the speed is 0, stop the motor
     if (speed == 0) {
         pwmA->setPWM_Int(pwm_pin_A, PWM_FREQ, 0);

@@ -18,8 +18,6 @@ rmt_encoder_handle_t led_encoder;
 rmt_transmit_config_t tx_config;
 //______________________________________________________________________________________________________________________
 const uint8_t NUMPIXELS = 2;
-const uint8_t statusLED_index = 0;
-const uint8_t batteryLED_index = 1;
 //______________________________________________________________________________________________________________________
 //For some reason these are stored as GRB Values it seems
 uint8_t led_color_values[3 * NUMPIXELS];
