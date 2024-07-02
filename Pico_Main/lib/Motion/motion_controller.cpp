@@ -12,17 +12,17 @@ const float ROBOT_DIAMETER = 0.15; // meters
 const int ENCODER_COUNTS_PER_REV = 12 * 70;
 
 // PID values for each motor
-const float MOTOR1_KP = 0.1;
-const float MOTOR1_KI = 0.1;
-const float MOTOR1_KD = 0.1;
+const float MOTOR1_KP = 1;
+const float MOTOR1_KI = 1;
+const float MOTOR1_KD = 1;
 
-const float MOTOR2_KP = 0.1;
-const float MOTOR2_KI = 0.1;
-const float MOTOR2_KD = 0.1;
+const float MOTOR2_KP = 1;
+const float MOTOR2_KI = 1;
+const float MOTOR2_KD = 1;
 
-const float MOTOR3_KP = 0.1;
-const float MOTOR3_KI = 0.1;
-const float MOTOR3_KD = 0.1;
+const float MOTOR3_KP = 1;
+const float MOTOR3_KI = 1;
+const float MOTOR3_KD = 1;
 
 Motor motor1(MOTOR1_A, MOTOR1_B, MOTOR1_A_ENC, MOTOR1_B_ENC);
 Motor motor2(MOTOR2_A, MOTOR2_B, MOTOR2_A_ENC, MOTOR2_B_ENC);

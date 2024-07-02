@@ -22,7 +22,9 @@ void setup() {
 
     Serial.printf("I2C from ESP\n");
     register_i2c_function(reinterpret_cast<i2c_response_t>(&motionCallback), PICO_MOTOR_COMMAND_REGISTER);
+#ifndef NO_ESP_CONNECTION
     initPicoPeriph();
+#endif
 
     statusLED.SetWarning();
     for (int i = 0; i < 100; ++i) {
@@ -46,15 +48,6 @@ void setup() {
     }
 #endif
 
-    // For testing without the ESP
-    // #ifdef NO_ESP_CONNECTION
-
-    // #endif
-
-#ifdef NO_IMU
-    Serial.printf("IMU\n");
-    IMU_I2C *imu = new IMU_I2C();
-#endif
     statusLED.SetOK();
 }
 

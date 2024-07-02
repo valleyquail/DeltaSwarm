@@ -4,3 +4,7 @@ ESP_Main/build
 ESP_Main/managed_components
 Pico_Main/build
 ESP_Main/esp-idf
+Cam_ESP32/managed_components
+Cam_ESP32/components
+Cam_ESP32/build
+Cam_ESP32/esp-idf
