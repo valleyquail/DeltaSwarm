@@ -17,7 +17,7 @@ i2c_config_t i2c_config = {
         // Pullups do not need to be enabled since they are pulled up by the pico
         .sda_pullup_en = GPIO_PULLUP_DISABLE,
         .scl_pullup_en = GPIO_PULLUP_DISABLE,
-        .master = {.clk_speed = PICO_I2C_FREQ},
+        .master = {.clk_speed = PICO_ESP_FREQ},
 };
 
 
@@ -32,7 +32,7 @@ uint8_t motorCommandBuffer[MOTOR_COMMAND_SIZE + 1];
 //______________________________________________________________________________________________________________________
 uint8_t odometryWrite = PICO_ODOMETRY_COMMAND_REGISTER;
 uint8_t encoderCountWrite = PICO_ENCODER_COUNT_COMMAND_REGISTER;
-uint8_t statusWrite = PICO_STATUS_REGISTER;
+
 
 // Read data buffers
 //______________________________________________________________________________________________________________________
@@ -53,9 +53,6 @@ bool pico_i2c_init() {
 #ifdef DEBUG
     printf("Configuring I2C\n");
 #endif
-    // Set the clock speed of the I2C bus
-    // C++ doesn't allow for direct assignment of the i2c_config struct
-    i2c_config.master.clk_speed = PICO_I2C_FREQ;
     i2c_param_config(i2c_master_port, &i2c_config);
     // Install the I2C driver
     esp_err_t i2c_driver_install_ret = i2c_driver_install(i2c_master_port, i2c_config.mode, 0, 0, 0);
@@ -118,18 +115,6 @@ void picoSendMovement(float speed, float theta, float omega, bool orientation) {
     }
     i2c_master_write_to_device(i2c_master_port, PICO_ADDRESS, motorCommandBuffer, MOTOR_COMMAND_SIZE,
                                I2C_MASTER_TIMEOUT_MS / configTICK_RATE_HZ);
-}
-
-
-STATUS requestStatus() {
-#ifdef DEBUG
-    printf("Requesting status\n");
-#endif
-    uint8_t statusBuffer[2];
-    // Request the status of the pico to check if it is functioning properly
-    i2c_master_write_read_device(i2c_master_port, PICO_ADDRESS, &statusWrite, 2, statusBuffer, 2,
-                                 I2C_MASTER_TIMEOUT_MS / configTICK_RATE_HZ);
-    return (STATUS) statusBuffer[0];
 }
 
 // X, Y, Theta

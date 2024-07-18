@@ -2,22 +2,26 @@
 // Created by nikesh on 5/24/24.
 //
 #include <Arduino.h>
+#include <Wire.h>
 #include "../../include/config.h"
 #include "i2c_control.h"
 #include "hardware/i2c.h"
 
+
 void initPicoController() {
-    gpio_init(SDA_PIN_0);
-    gpio_set_function(SDA_PIN_0, GPIO_FUNC_I2C);
-//    gpio_pull_up(SDA_PIN_0);
+    Wire.setSCL(SCL_PIN_0);
+    Wire.setSDA(SDA_PIN_0);
+    Serial.println("huh");
+    Wire.setClock(100000);
+    Serial.println("huh");
+    Wire.begin();
 
-    gpio_init(SCL_PIN_0);
-    gpio_set_function(SCL_PIN_0, GPIO_FUNC_I2C);
-//    gpio_pull_up(SCL_PIN_0);
-
-    i2c_init(i2c0, PICO_I2C_FREQ);
     Serial.printf("initialized the pico as a master\n");
 }
+
+
+
+//Port testing debug
 
 bool reserved_addr(uint8_t addr) {
     return (addr & 0x78) == 0 || (addr & 0x78) == 0x78;
@@ -42,6 +46,7 @@ void bus_scan() {
         if (reserved_addr(addr))
             ret = PICO_ERROR_GENERIC;
         else
+
             ret = i2c_read_blocking(i2c0, addr, &rxdata, 1, false);
 
         Serial.printf(ret < 0 ? "." : "@");

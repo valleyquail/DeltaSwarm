@@ -84,7 +84,7 @@ void initPicoPeriph() {
     gpio_pull_up(SCL_PIN_1);
 
     // Set up the device as a peripheral
-    i2c_init(i2c1, PICO_I2C_FREQ);
+    i2c_init(i2c1, PICO_CONTROLLER_I2C_FREQ);
     i2c_slave_init(i2c1, PICO_ADDRESS, &i2c_slave_handler);
     Serial.printf("initialized the pico as a peripheral at address 0x%x\n", PICO_ADDRESS);
     uint8_t motor_speeds = address_map[PICO_MOTOR_COMMAND_REGISTER];

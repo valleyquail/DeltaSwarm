@@ -7,10 +7,25 @@
 
 #include <rcl/types.h>
 
-#include <rmw_microros/rmw_microros.h>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <uros_network_interfaces.h>
+
+#ifdef CONFIG_MICRO_ROS_ESP_XRCE_DDS_MIDDLEWARE
+#include <rmw_microros/rmw_microros.h>
+#endif
+
+
+std::string name("ESP_Robot");
+rcl_node_t node;
+rcl_allocator_t allocator;
+rclc_executor_t executor;
+rclc_support_t support;
+
+
+rcl_timer_t check_alive_timer;
+std_msgs__msg__String alive_msg;
 
 
 #define RCCHECK(fn)                                                                      \
@@ -31,20 +46,6 @@
         }                                                                                  \
     }
 
-void check_alive_timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
-    rcl_ret_t rc;
-
-    if (timer != NULL) {
-        rc = rcl_publish(&check_alive_pub, &alive_msg, NULL);
-        if (rc == RCL_RET_OK) {
-            printf("Published message %s\n", alive_msg.data.data);
-        } else {
-            printf("Error in timer_callback: Message %s could not be published\n", alive_msg.data.data);
-        }
-    } else {
-        printf("Error in timer_callback: timer parameter is NULL\n");
-    }
-}
 
 inline void init_alive_msg() {
     std_msgs__msg__String__init(&alive_msg);
@@ -52,6 +53,21 @@ inline void init_alive_msg() {
     alive_msg.data.capacity = ALIVE_MSG_CAPACITY;
     snprintf(alive_msg.data.data, ALIVE_MSG_CAPACITY, "R%i Alive", ROBOT_NUM);
     alive_msg.data.size = strlen(alive_msg.data.data);
+}
+
+void check_alive_timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
+    (void) last_call_time;
+    rcl_ret_t rc;
+    if (timer != NULL) {
+    rc = rcl_publish(&check_alive_pub, &alive_msg, NULL);
+        if (rc == RCL_RET_OK)
+            printf("Published message %s\n", alive_msg.data.data);
+        else
+            printf("Error in timer_callback: Message %s could not be published\n",
+                   alive_msg.data.data);
+    } else {
+        printf("Error in timer_callback: timer parameter is NULL\n");
+    }
 }
 
 inline void init_all_msg() {
@@ -65,51 +81,48 @@ void do_nothing(const void *msgin) {
     (void) msgin;
 }
 
-rcl_node_t node;
-rcl_allocator_t allocator;
-rclc_executor_t executor;
-rclc_support_t support;
 
-
-void xLaunchROSNode(void *args) {
+void xLaunchROSNode(const void *args) {
     name += std::to_string(ROBOT_NUM);
     const char *node_name = name.c_str();
+
     allocator = rcl_get_default_allocator();
     executor = rclc_executor_get_zero_initialized_executor();
-    rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+
     // create init_options
+    rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
     RCCHECK(rcl_init_options_init(&init_options, allocator));
+
+#ifdef CONFIG_MICRO_ROS_ESP_XRCE_DDS_MIDDLEWARE
+    rmw_init_options_t *rmw_options = rcl_init_options_get_rmw_init_options(&init_options);
+    // Static Agent IP and port can be used instead of autodisvery.
+    RCCHECK(rmw_uros_options_set_udp_address(CONFIG_MICRO_ROS_AGENT_IP, CONFIG_MICRO_ROS_AGENT_PORT, rmw_options));
+#endif
+
     // Init support
     RCCHECK(rclc_support_init_with_options(&support, 0, NULL, &init_options, &allocator));
 
-    //Init timer
-    init_alive_msg();
-    RCCHECK(rclc_publisher_init_default(&check_alive_pub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
-                                        "check_alive"));
-    RCCHECK(rclc_timer_init_default(&check_alive_timer, &support, timer_period, check_alive_timer_callback));
-
-#ifdef CONFIG_MICRO_ROS_ESP_XRCE_DDS_MIDDLEWARE
-    rmw_init_options_t* rmw_options = rcl_init_options_get_rmw_init_options(&init_options);
-
-        // Static Agent IP and port can be used instead of autodisvery.
-        RCCHECK(rmw_uros_options_set_udp_address(CONFIG_MICRO_ROS_AGENT_IP, CONFIG_MICRO_ROS_AGENT_PORT, rmw_options));
-         RCCHECK(rmw_uros_discover_agent(rmw_options));
-#endif
     //Init Node
     RCCHECK(rclc_node_init_default(&node, node_name, "", &support));
     //Init Executor
     RCCHECK(rclc_executor_init(&executor, &support.context, 2, &allocator));
 
     unsigned int rcl_wait_timeout = 1000; // in ms
-
     RCCHECK(rclc_executor_set_timeout(&executor, RCL_MS_TO_NS(rcl_wait_timeout)));
 
+    //Init timer
+    init_alive_msg();
+    RCCHECK(rclc_publisher_init_default(&check_alive_pub, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
+                                        "check_alive"));
+    RCCHECK(rclc_timer_init_default(&check_alive_timer, &support, timer_period, check_alive_timer_callback));
+    RCCHECK(rclc_executor_add_timer(&executor, &check_alive_timer));
+    //Init rest of the ROS messages and publishers and subscribers
     init_all_msg();
-    register_ros_callbacks(NULL);
-    register_ros_publishers(NULL);
+    register_ros_callbacks(nullptr);
+    register_ros_publishers(nullptr);
 
     while (1) {
-        rclc_executor_spin(&executor);
+        rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
     }
 
     // free resources

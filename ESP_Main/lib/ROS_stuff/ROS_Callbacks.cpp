@@ -20,6 +20,9 @@
 #include "freertos/task.h"
 #include "../Robot/Robot.h"
 
+custom_messages__msg__RobotMovement robot_movement_msg;
+rcl_subscription_t movement_sub;
+
 
 void movement_sub_callback(const void *movement) {
     const custom_messages__msg__RobotMovement *move = (custom_messages__msg__RobotMovement *) movement;

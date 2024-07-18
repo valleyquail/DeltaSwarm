@@ -9,9 +9,7 @@
 #include "../lib/I2C_Control/i2c_control.h"
 
 #include "../lib/Testing/serial_debugger.h"
-
-#include "hardware/gpio.h"
-#include "../lib/Motion/encoder.h"
+#include "../lib/Odometry/sensors_config.h"
 
 MotionController motionController = MotionController();
 StatusLED statusLED = StatusLED(NEOPIXEL_PIN);
@@ -22,51 +20,57 @@ void setup() {
 
     Serial.printf("I2C from ESP\n");
     register_i2c_function(reinterpret_cast<i2c_response_t>(&motionCallback), PICO_MOTOR_COMMAND_REGISTER);
-#ifndef NO_ESP_CONNECTION
-    initPicoPeriph();
-#endif
+//#ifndef NO_ESP_CONNECTION
+//    initPicoPeriph();
+//#endif
 
-    statusLED.SetWarning();
     for (int i = 0; i < 100; ++i) {
         Serial.printf("Launching in %i ms\n", (100 - i) * 20);
         sleep_ms(20);
     }
-//    initPicoController();
-    Serial.printf("Testing?");
-//    bus_scan();
-    Serial.printf("Testing?");
 
-#if PICO_USE_USB_SERIAL
-    SerialDebugger serialDebugger = SerialDebugger();
-    // statusLED.SetOK();
-    while (true)
-    {
-      if (!Serial.available())
-        serialDebugger.receive();
-      else
-        delay(20);
-    }
-#endif
+    statusLED.SetWarning();
+
+
+    initPicoController();
+//    bus_scan();
+//    config_icm42688();
+//    config_lis3mdl();
+    Serial.printf("Testing?");
 
     statusLED.SetOK();
+
+    delay(1000);
+//    for (int i = 20000; i < 200000; i+=100) {
+//        motor1.setTargetSpeed(i);
+//        delay(10);
+//        int currSpeed = motor1.getEncoderSpeed();
+//        if (currSpeed > 0){
+//            Serial.printf("Deadband ended at %i\n", i);
+//            break;
+//        }
+//        Serial.println(i);
+//    }
+
+MotionController::setSpeed(1, 1, 0);
+//    motionController.runPIDUpdate();
+//    motionController.debugMotorSpeeds();
+
+
 }
 
 void loop() {
 
-    Serial.printf("looped\n");
-    motionController.setSpeed(5, 0, 0);
-    delay(2000);
-//    for (int i = 0; i < 4; i++) {
-//        motionController.runPIDUpdate();
-//        delay(250);
-//    }
-    motionController.setSpeed(5, PI, 0);
-    delay(2000);
-//    delay(1000);
-//    for (int i = 0; i < 4; i++) {
-//        motionController.runPIDUpdate();
-//        delay(250);
-//    }
+//    read_sensors();
+    delay(100);
 
+//    delay(1000);
+//    unsigned long currTime = millis();
+//    for (int i = 0; i < 100; i++) {
+//        motionController.runPIDUpdate();
+        motionController.debugMotorSpeeds();
+//        delay(10);
+//    }
+//    Serial.printf("Time taken: %lu\n", millis() - currTime);
 
 }

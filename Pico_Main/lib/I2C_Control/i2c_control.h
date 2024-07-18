@@ -1,7 +1,7 @@
 
-#ifdef __cplusplus
 
-#endif
+#ifndef I2C_CONTROL_H
+#define I2C_CONTROL_H
 
 #include <pico/stdio.h>
 #include <pico/stdlib.h>
@@ -48,6 +48,8 @@ struct DataPacket {
 extern struct DataPacket data_packets[];
 
 
+
+
 void initPicoPeriph();
 
 void initPicoController();
@@ -59,3 +61,4 @@ void bus_scan();
 void motionCallback(int8_t packet_index);
 
 
+#endif //I2C_CONTROL_H

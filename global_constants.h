@@ -33,17 +33,10 @@
 #define ENCODER_COMMAND_SIZE 16
 #define PICO_ENCODER_COUNT_COMMAND_REGISTER 0x02
 
-#define PICO_WHOAMI_REGISTER 0xF0
-#define PICO_WHOAMI PICO_ADDRESS
-
-// Normal rate
-#define PICO_I2C_FREQ 100000
-
-#define PICO_STATUS_REGISTER 0x0F
-enum STATUS {
-    OK = 0,
-    ERROR = 1
-};
+// I2C frequency for the pico when in master mode
+#define PICO_CONTROLLER_I2C_FREQ 400000
+#define ICM42688_ADDRESS 0x68
+#define LIS3MDL_ADDRESS 0x1E
 
 
 #endif

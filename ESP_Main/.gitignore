@@ -1,5 +1,6 @@
 build/
 sdkconfig
+sdkconfig.old
 components/arduino
 cmake-build-debug/
 .idea/

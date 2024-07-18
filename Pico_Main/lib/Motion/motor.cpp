@@ -11,7 +11,6 @@ Motor::Motor(uint8_t pwmPinA, uint8_t pwmPinB, uint8_t encoderPinA, uint8_t enco
     pwm_pin_B = pwmPinB;
     encoder_pin_A = encoderPinA;
     encoder_pin_B = encoderPinB;
-    prev_state = 0;
     gpio_init(encoder_pin_A);
     gpio_init(encoder_pin_B);
     gpio_set_dir(encoder_pin_A, GPIO_IN);
@@ -45,15 +44,16 @@ void Motor::setTargetSpeed(int speed) {
 }
 
 void Motor::setSpeed(int speed) {
-    //TODO: Get rid of this since this scaling will be taken care of by the PID controller
-    speed *= 25;
     // If the speed is 0, stop the motor
+    speed *= PWM_SCALING_FACTOR;
+
     if (speed == 0) {
         pwmA->setPWM_Int(pwm_pin_A, PWM_FREQ, 0);
         pwmB->setPWM_Int(pwm_pin_B, PWM_FREQ, 0);
     }
         // If the speed is negative, set the direction to reverse
     else if (speed < 0) {
+//        speed -= DEADBAND_END;
         pwmA->setPWM_Int(pwm_pin_A, PWM_FREQ, 0);
         pwmB->setPWM_Int(pwm_pin_B, PWM_FREQ, -speed);
 #ifdef ENCODER_DEBUG
@@ -62,13 +62,14 @@ void Motor::setSpeed(int speed) {
     }
         // If the speed is positive, set the direction to forward
     else {
+        speed += DEADBAND_END;
         pwmA->setPWM_Int(pwm_pin_A, PWM_FREQ, speed);
         pwmB->setPWM_Int(pwm_pin_B, PWM_FREQ, 0);
 #ifdef ENCODER_DEBUG
         Serial.println("Forward\n");
 #endif
     }
-#ifdef ENCODER_DEBUG
+#ifdef SPEED_DEBUG
     Serial.printf("Speed set: %i\n", speed);
 #endif
 }
@@ -83,32 +84,60 @@ void Motor::brake() {
 
 // PID Control function
 void Motor::updateSpeed() {
-#ifdef ENCODER_DEBUG
-    if (isNewSpeed) {
-        Serial.printf("Mode: %i\n", isNewSpeed);
-        Serial.printf("locations of isnewspeed: %p\n", &isNewSpeed);
+    int error, dError, output;
+
+    if (target_speed == 0 || isNewSpeed) {
         return;
     }
-#endif
+        //If the speed is negative, flip the error logic
+    else if (target_speed < 0) {
+        // Calculate the error
+        error = target_speed - encoderSpeed * 1000 / (TIMER_INTERVAL_MS);
+        // Calculate the integral
 
-    // Calculate the error
-    float error = target_speed - encoderSpeed * 1000 / (TIMER_INTERVAL_MS);
-    // Calculate the integral
-    if (sumError + error < maxError && sumError + error > minError) {
-        sumError += error;
+        if (sumError + error > -maxError) {
+            sumError += error;
+        }
+        // Calculate the derivative
+        dError = error - lastError;
+        // Calculate the output
+        output = (int) (kp * error + ki * sumError + kd * dError);
+        // Set the PWM
+        setSpeed(output);
+    } else {
+// Calculate the error
+        error = target_speed - encoderSpeed * 1000 / (TIMER_INTERVAL_MS);
+        // Calculate the integral
+
+        if (sumError + error < maxError) {
+            sumError += error;
+        }
+        // Calculate the derivative
+        dError = error - lastError;
+        // Calculate the output
+        output = (int) floor(kp * error + ki * sumError + kd * dError);
+        // Set the PWM
+        setSpeed(output);
     }
-    // Calculate the derivative
-    float dError = error - lastError;
-    // Calculate the output
-    float output = kp * error + ki * sumError + kd * dError;
-    // Set the PWM
-    setSpeed((int) output);
-#if defined(ENCODER_DEBUG) || defined(PICO_USE_USB_SERIAL)
+
+#if defined(PID_DEBUG)
     Serial.printf("Motor on pins: %d %d\n", pwm_pin_A, pwm_pin_B);
-    Serial.printf("PID Speed: %d\n", encoderSpeed);
-    Serial.printf("Error: %f\n", error);
-    Serial.printf("Current encoder counts: %i\n", curr_movement_encoder_count);
+    Serial.printf("PID Speed: %i\n", output);
+    Serial.printf("Error: %i;Sum %i; dError %i\n\n", error, sumError, dError);
+    //    Serial.printf("Current encoder counts: %i\n\n", curr_movement_encoder_count);
 #endif
-    // Update the last error
+// Update the last error
     lastError = error;
+}
+
+int Motor::getCurrEncoderCount() const {
+    return curr_movement_encoder_count;
+}
+
+int Motor::getEncoderSpeed() const {
+    return encoderSpeed;
+}
+
+int Motor::getTargetSpeed() const {
+    return target_speed;
 }

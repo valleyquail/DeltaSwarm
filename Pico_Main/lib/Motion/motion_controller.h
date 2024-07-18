@@ -1,6 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <Arduino.h>
+#include "motor.h"
 
 /**
  * @brief Class that hanbdles the motion of the robot. This only handles the
@@ -9,8 +10,6 @@
  */
 class MotionController
 {
-
-
 public:
     MotionController();
 
@@ -21,23 +20,25 @@ public:
      * @param theta Angle to head in radians relative to global orientation
      * @param omega Angular velocity in rad/s
      */
-    void setSpeed(float speed, float theta, float omega);
+    static void setSpeed(float speed, float theta, float omega);
 
     /**
      * @brief Set the Speed object
      *
      * @param speeds array from the I2C interrupt that contains the speeds for each motor
      */
-    void setSpeedFromI2C(const uint8_t *speeds);
-
+    static void setSpeedFromI2C(const uint8_t *speeds);
+    static void setM1PWM(int speed);
     // Stops the robot and sets the motors to idle
-    void stop();
-
+    static void stop();
+    void debugMotorSpeeds();
     // Sets both PWM channels high so that the motors have some force to hold the robot in place
-    void brake();
-    int *getEncoderValues();
+    static void brake();
+    static int *getEncoderValues();
 
     void runPIDUpdate();
+
+
 };
 
 extern MotionController motionController;

@@ -15,7 +15,6 @@ void picoSendMovement(float speed, float theta, float omega, bool orientation);
 
 //Request functions
 //______________________________________________________________________________________________________________________
-STATUS requestStatus();
 
 float *requestOdometry();
 

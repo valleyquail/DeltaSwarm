@@ -4,6 +4,13 @@
 #include "pico/stdlib.h"
 #include "RP2040_PWM.h"
 
+#ifndef __MOTOR_H__
+#define __MOTOR_H__
+
+#define PWM_SCALING_FACTOR 5
+#define DEADBAND_END 65800
+
+
 // TODO: Maybe make a child class for drive motors vs actuator motors so that
 // there can be functionality to change the PWM frequency of the motor for
 // different speed control responses?
@@ -13,11 +20,6 @@ class Motor {
 protected:
     // 20kHz PWM frequency
     const float PWM_FREQ = 20000.;
-    // Used to control the motors:
-    enum controlMode {
-        SET_NEW_SPEED,
-        UPDATE_SPEED,
-    };
 
     // True if it is a new target speed
     volatile bool isNewSpeed = true;
@@ -30,42 +32,37 @@ protected:
     RP2040_PWM *pwmA;
     RP2040_PWM *pwmB;
 
-    volatile int prev_state;
     // Stores the encoder count since the program started
-    int32_t total_encoder_count = 0;
+    int total_encoder_count = 0;
     // Stores the encoder count since the last movement
     // Resets everytime there is a new movement
 
     // keeps track of encoder changes
     volatile int prevCount = 0;
+    volatile int curr_movement_encoder_count = 0;
 
     // PID control variables
-    float kp{};
-    float ki{};
-    float kd{};
+    float kp;
+    float ki;
+    float kd;
 
     // Encoder count within the timer interval
     // TODO Determine the timer interval
-    volatile int16_t encoderSpeed = 0;
+    volatile int encoderSpeed = 0;
+
     // Keep track of target speed
     int target_speed = 0;
     // Integral control
-    float sumError = 0;
+    int sumError = 0;
     // Derivative control
-    float lastError = 0;
-    // Max error for integral control since the duty cycle is limited to 100
-    const float maxError = 100.;
-    // Min error for integral control since the duty cycle is limited to 0
-    const float minError = 0.;
-
-    void setPWM(float speed);
-
-    void resetEncoderCount();
+    int lastError = 0;
+    // Max error for integral control to prevent windup
+    const int maxError = 10000;
 
     void setSpeed(int speed);
 
 public:
-    volatile int curr_movement_encoder_count = 0;
+
     Motor(uint8_t pwm_in_A, uint8_t pwm_in_B, uint8_t encoder_pin_A, uint8_t encoder_pin_B);
 
     void setPIDVals(float kp, float ki, float kd);
@@ -85,8 +82,13 @@ public:
      */
     void brake();
 
-    int getEncoderCount();
+    [[nodiscard]] int getCurrEncoderCount() const;
 
+    /**
+     * @brief Get the Encoder Speed object
+     * @return the encoder delta in the timer interval
+     */
+    [[nodiscard]] int getEncoderSpeed() const;
     /**
      * @brief Calculate the change in encoder count since the last measurement
      * Used to calculate the speed of the motor in terms of encoder counts. It
@@ -103,8 +105,12 @@ public:
     friend void encoderInterruptA(void *motor_instance);
 
     friend void encoderInterruptB(void *motor_instance);
+
+    [[nodiscard]] int getTargetSpeed() const;
 };
 
 extern Motor motor1;
 extern Motor motor2;
 extern Motor motor3;
+
+#endif

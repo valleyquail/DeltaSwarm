@@ -13,12 +13,13 @@
 #include <nav_msgs/msg/odometry.h>
 #include <string>
 
+
 //Number of handles the executor will use: sum of the number of publishers, subscribers and timers
 const int num_handles = 3;
 
 //Node configuration
 //______________________________________________________________________________________________________________________
-std::string name("ESP_Robot");
+
 extern rcl_node_t node;
 extern rcl_allocator_t allocator;
 extern rclc_executor_t executor;
@@ -27,11 +28,9 @@ extern rclc_support_t support;
 //Timers
 //______________________________________________________________________________________________________________________
 extern rcl_timer_t check_alive_timer;
-extern std_msgs__msg__String alive_msg;
 //publish alive once a second
 const uint32_t timer_period = RCL_MS_TO_NS(1000);
-
-void check_alive_timer_callback(rcl_timer_t *timer, int64_t last_call_time);
+void check_alive_timer_callback(rcl_timer_t * timer, int64_t last_call_time);
 
 //Timer Message
 //______________________________________________________________________________________________________________________
@@ -60,15 +59,13 @@ extern rcl_publisher_t robot_movement_pub;
 extern nav_msgs__msg__Odometry odom_msg;
 
 
-
-
 //Launch ROS node
 extern "C" void xLaunchROSNode(const void *args);
 
 //Register ROS publishers and subscribers
-inline void register_ros_publishers(const void *args);
+extern "C" void register_ros_publishers(const void *args);
 
-inline void register_ros_callbacks(const void *args);
+extern "C" void register_ros_callbacks(const void *args);
 
 //Initialize required messages
 inline void init_all_msg();
