@@ -19,6 +19,7 @@ bool config_icm42688() {
         Serial.printf("IMU not found\n");
         return false;
     }
+    Serial.printf("IMU Found\n");
     imu->setGyroFS(gyroFSR);
     imu->setAccelFS(accelFSR);
     imu->setAccelODR(odr);
@@ -38,6 +39,7 @@ bool config_lis3mdl() {
         Serial.printf("Magnetometer not found\n");
         return false;
     }
+    Serial.printf("Magnetometer Found\n");
     mag->setPerformanceMode(performanceMode);
     mag->setOperationMode(operationMode);
     mag->setDataRate(dataRate);

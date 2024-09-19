@@ -16,5 +16,5 @@ void motionCallback(int8_t packet_index) {
     }
     printf("\n");
 #endif
-    motionController.setSpeedFromI2C(data_packets[packet_index].buffer);
+    MotionController::setSpeedFromI2C(data_packets[packet_index].buffer);
 }

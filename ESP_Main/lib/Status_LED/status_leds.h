@@ -18,8 +18,6 @@ void statusLEDSetOK();
 // Off
 void SetStatusLEDOff();
 
-void batteryLEDSetColor(uint8_t level);
+void SetBatteryLEDColor(uint8_t level);
 
 #endif
-
-

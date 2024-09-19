@@ -2,26 +2,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../../include/config.h"
+#include "driver/i2c.h"
 #include "esp_err.h"
-#include "freertos/FreeRTOS.h"
 #include "i2c_management.h"
+#include "sdkconfig.h"
 
-#define I2C_MASTER_TIMEOUT_MS 1000
+#define I2C_MASTER_TIMEOUT_MS 10 /*!< I2C timeout in milliseconds */
+#define I2C_MASTER_TX_BUF_DISABLE 0 /*!< I2C master doesn't need buffer */
+#define I2C_MASTER_RX_BUF_DISABLE 0 /*!< I2C master doesn't need buffer */
 
 // Configuration for the I2C bus
 
-i2c_config_t i2c_config = {
-        .mode = I2C_MODE_MASTER,
-        .sda_io_num = PICO_SDA1,
-        .scl_io_num = PICO_SCL1,
-        // Pullups do not need to be enabled since they are pulled up by the pico
-        .sda_pullup_en = GPIO_PULLUP_DISABLE,
-        .scl_pullup_en = GPIO_PULLUP_DISABLE,
-        .master = {.clk_speed = PICO_ESP_FREQ},
-};
-
-
-i2c_port_t i2c_master_port = I2C_NUM_1;
+i2c_port_t i2c_master_port = (i2c_port_t)PICO_I2C_PORT;
 
 
 // Command buffers
@@ -48,23 +40,48 @@ uint8_t encoderCountBuffer[16];
 
  */
 
-bool pico_i2c_init() {
+bool pico_i2c_init()
+{
     // Configure I2C
 #ifdef DEBUG
     printf("Configuring I2C\n");
 #endif
-    i2c_param_config(i2c_master_port, &i2c_config);
+
+    // ______________________________________________________________________________________________________________________
+    // Configure I2C
+    i2c_config_t i2c_config;
+    i2c_config.mode = I2C_MODE_MASTER;
+    i2c_config.sda_io_num = PICO_SDA1;
+    i2c_config.scl_io_num = PICO_SCL1;
+    // Pullups do not need to be enabled since they are pulled up by the pico
+    i2c_config.sda_pullup_en = GPIO_PULLUP_DISABLE;
+    i2c_config.scl_pullup_en = GPIO_PULLDOWN_DISABLE;
+    i2c_config.master.clk_speed = PICO_ESP_FREQ;
+    i2c_config.clk_flags = 0;
+    esp_err_t i2c_param_config_err = i2c_param_config(i2c_master_port, &i2c_config);
+    if (i2c_param_config_err != ESP_OK)
+    {
+        printf("I2C parameter config failed\n");
+        return false;
+    }
+    //_______________________________________________________________________________________________________________________
+
     // Install the I2C driver
-    esp_err_t i2c_driver_install_ret = i2c_driver_install(i2c_master_port, i2c_config.mode, 0, 0, 0);
+    esp_err_t i2c_driver_install_ret =
+        i2c_driver_install(i2c_master_port, i2c_config.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
 #ifdef DEBUG
-    if (i2c_driver_install_ret != ESP_OK) {
+    if (i2c_driver_install_ret != ESP_OK)
+    {
         printf("I2C driver install failed\n");
         return false;
     }
     printf("I2C driver installed\n");
 #endif
+    return true;
+}
 
-    // Initialize the motor command buffer
+bool test_pico_connection()
+{
     // Address
     uint8_t reg_addr = PICO_MOTOR_COMMAND_REGISTER;
     // Check that the ok is received:
@@ -73,12 +90,12 @@ bool pico_i2c_init() {
     // the 'ok' buffer to make sure that it is communicating properly
     i2c_master_write_read_device(i2c_master_port, PICO_ADDRESS, &reg_addr, 1, check_ok, 2,
                                  I2C_MASTER_TIMEOUT_MS / configTICK_RATE_HZ);
-    if ((char) check_ok[0] == 'O' && (char) check_ok[1] == 'K') {
+    if ((char)check_ok[0] == 'O' && (char)check_ok[1] == 'K')
+    {
         printf("connection to the pico is working\n");
         return true;
     }
     printf("connection to the pico is not working: %c %c\n", check_ok[0], check_ok[1]);
-
     return false;
 }
 
@@ -90,7 +107,8 @@ bool pico_i2c_init() {
  * @param orientation whether or not to keep the orientation of the robot during a move
  */
 
-void picoSendMovement(float speed, float theta, float omega, bool orientation) {
+void picoSendMovement(float speed, float theta, float omega, bool orientation)
+{
     // Send the motor command
 #ifdef DEBUG
     printf("Sending motor command\n");
@@ -98,19 +116,23 @@ void picoSendMovement(float speed, float theta, float omega, bool orientation) {
     // Converts the floats raw bytes and then copies the information into the buffer to send to the pico for calling
     //  sending over the desired motion
     motorCommandBuffer[0] = PICO_MOTOR_COMMAND_REGISTER;
-    memcpy(motorCommandBuffer + 1, (uint8_t * ) & speed, 4);
-    memcpy(motorCommandBuffer + 5, (uint8_t * ) & theta, 4);
-    memcpy(motorCommandBuffer + 9, (uint8_t * ) & omega, 4);
+    memcpy(motorCommandBuffer + 1, (uint8_t *)&speed, 4);
+    memcpy(motorCommandBuffer + 5, (uint8_t *)&theta, 4);
+    memcpy(motorCommandBuffer + 9, (uint8_t *)&omega, 4);
 #ifdef DEBUG
     printf("Motor command: %f, %f, %f\n", speed, theta, omega);
-    for (int i = 0; i < MOTOR_COMMAND_SIZE; i++) {
+    for (int i = 0; i < MOTOR_COMMAND_SIZE; i++)
+    {
         printf("%d: %02x, ", i, motorCommandBuffer[i]);
     }
     printf("\n");
 #endif
-    if (orientation) {
+    if (orientation)
+    {
         motorCommandBuffer[14] = 'K';
-    } else {
+    }
+    else
+    {
         motorCommandBuffer[14] = 'k';
     }
     i2c_master_write_to_device(i2c_master_port, PICO_ADDRESS, motorCommandBuffer, MOTOR_COMMAND_SIZE,
@@ -125,14 +147,14 @@ float robotOdometry[3];
  * Stored in the following format: x, y, theta
  * @return the odometry from the Pico
  */
-float *requestOdometry() {
+float *requestOdometry()
+{
 #ifdef DEBUG
     printf("Requesting odometry\n");
 #endif
     // Request odometry information from the pico to report and/or use for motion planning
     i2c_master_write_read_device(i2c_master_port, PICO_ADDRESS, &odometryWrite, 2, odometryBuffer,
-                                 ODOMETRY_COMMAND_SIZE,
-                                 I2C_MASTER_TIMEOUT_MS / configTICK_RATE_HZ);
+                                 ODOMETRY_COMMAND_SIZE, I2C_MASTER_TIMEOUT_MS / configTICK_RATE_HZ);
     // Since the information is stored as floats but sent over as bytes, this converts the raw bytes into floats by
     // directly copying over the bytes into an array of floats that contains the requred information
     // TODO (nikesh): Check if the odometry is being sent correctly due to Endianness

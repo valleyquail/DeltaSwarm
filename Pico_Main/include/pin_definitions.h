@@ -32,4 +32,4 @@ const uint8_t SCL_PIN_1 = 15;
 const uint8_t SDA_PIN_0 = 16;
 const uint8_t SCL_PIN_0 = 17;
 
-const uint8_t NEOPIXEL_PIN = 15;
+const uint8_t NEOPIXEL_PIN = 12;

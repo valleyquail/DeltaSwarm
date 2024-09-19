@@ -15,28 +15,29 @@ MotionController motionController = MotionController();
 StatusLED statusLED = StatusLED(NEOPIXEL_PIN);
 
 void setup() {
-    Serial.begin(115200);
-    statusLED.SetError();
 
-    Serial.printf("I2C from ESP\n");
-    register_i2c_function(reinterpret_cast<i2c_response_t>(&motionCallback), PICO_MOTOR_COMMAND_REGISTER);
-//#ifndef NO_ESP_CONNECTION
-//    initPicoPeriph();
-//#endif
+    Serial.begin(115200);
+
 
     for (int i = 0; i < 100; ++i) {
         Serial.printf("Launching in %i ms\n", (100 - i) * 20);
         sleep_ms(20);
     }
+    statusLED.SetError();
+
+    Serial.printf("I2C from ESP\n");
+    register_i2c_function(reinterpret_cast<i2c_response_t>(&motionCallback), PICO_MOTOR_COMMAND_REGISTER);
+
+    initPicoPeriph();
 
     statusLED.SetWarning();
 
 
-    initPicoController();
+//    initPicoController();
 //    bus_scan();
 //    config_icm42688();
 //    config_lis3mdl();
-    Serial.printf("Testing?");
+    Serial.printf("Testing?\n");
 
     statusLED.SetOK();
 
@@ -52,7 +53,7 @@ void setup() {
 //        Serial.println(i);
 //    }
 
-MotionController::setSpeed(1, 1, 0);
+//MotionController::setSpeed(1, 1, 0);
 //    motionController.runPIDUpdate();
 //    motionController.debugMotorSpeeds();
 
@@ -62,13 +63,13 @@ MotionController::setSpeed(1, 1, 0);
 void loop() {
 
 //    read_sensors();
-    delay(100);
-
+    delay(1000);
+    Serial.printf("Looping\n");
 //    delay(1000);
 //    unsigned long currTime = millis();
 //    for (int i = 0; i < 100; i++) {
 //        motionController.runPIDUpdate();
-        motionController.debugMotorSpeeds();
+//        motionController.debugMotorSpeeds();
 //        delay(10);
 //    }
 //    Serial.printf("Time taken: %lu\n", millis() - currTime);

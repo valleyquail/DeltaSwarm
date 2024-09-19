@@ -4,7 +4,7 @@
 #define PI_AS_HOST 0
 
 #define PICO_BAUD_RATE 115200
-//#define PICO_USE_USB_SERIAL 0
+// #define PICO_USE_USB_SERIAL 0
 
 #define PICO_ADDRESS 0x40
 #define ICM_20948_ADDRESS 0x68
@@ -13,7 +13,7 @@
 #define USE_I2C_FROM_ESP 1
 
 // Fast mode
-#define PICO_ESP_FREQ 400000
+#define PICO_ESP_FREQ 100000
 // Defines for data packet size and data "registers" for the pico
 // Essentially this is what configures the pico as the client device, and this
 // is what the ESP is going to be reading and writing from
@@ -28,7 +28,7 @@
 #define ODOMETRY_COMMAND_SIZE 16
 #define PICO_ODOMETRY_COMMAND_REGISTER 0x01
 
-//TODO: Implement encoder count dependent upon the number of additional motors
+// TODO: Implement encoder count dependent upon the number of additional motors
 
 #define ENCODER_COMMAND_SIZE 16
 #define PICO_ENCODER_COUNT_COMMAND_REGISTER 0x02
@@ -37,6 +37,5 @@
 #define PICO_CONTROLLER_I2C_FREQ 400000
 #define ICM42688_ADDRESS 0x68
 #define LIS3MDL_ADDRESS 0x1E
-
 
 #endif

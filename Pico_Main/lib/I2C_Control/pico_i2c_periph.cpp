@@ -37,9 +37,10 @@ DataPacket *current_packet;
 
 // printing to stdio may interfere with interrupt handling.
 static void i2c_slave_handler(i2c_inst_t *i2c, i2c_slave_event_t event) {
+    Serial.printf("Event: %d\n", event);
     switch (event) {
         case I2C_SLAVE_RECEIVE: // master has written some data
-            if (i2c1->hw->data_cmd & I2C_IC_DATA_CMD_FIRST_DATA_BYTE_BITS) {
+            if (i2c->hw->data_cmd & I2C_IC_DATA_CMD_FIRST_DATA_BYTE_BITS) {
                 // writes always start with the memory address
                 pico_register = i2c_read_byte_raw(i2c);
 #ifdef I2C_DEBUG
@@ -84,7 +85,7 @@ void initPicoPeriph() {
     gpio_pull_up(SCL_PIN_1);
 
     // Set up the device as a peripheral
-    i2c_init(i2c1, PICO_CONTROLLER_I2C_FREQ);
+    i2c_init(i2c1, PICO_ESP_FREQ);
     i2c_slave_init(i2c1, PICO_ADDRESS, &i2c_slave_handler);
     Serial.printf("initialized the pico as a peripheral at address 0x%x\n", PICO_ADDRESS);
     uint8_t motor_speeds = address_map[PICO_MOTOR_COMMAND_REGISTER];
