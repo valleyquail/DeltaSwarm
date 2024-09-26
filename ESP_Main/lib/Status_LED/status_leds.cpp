@@ -22,19 +22,23 @@ const uint8_t NUMPIXELS = 2;
 // For some reason these are stored as GRB Values it seems
 uint8_t led_color_values[3 * NUMPIXELS];
 
-void initStatusLED(int8_t pin)
-{
+inline void show() {
+    ESP_ERROR_CHECK(rmt_transmit(led_channel, led_encoder, led_color_values, sizeof(led_color_values), &tx_config));
+    ESP_ERROR_CHECK(rmt_tx_wait_all_done(led_channel, portMAX_DELAY));
+}
+
+void initStatusLED(int8_t pin) {
     rmt_tx_channel_config_t tx_chan_config = {
-        .gpio_num = (gpio_num_t)pin,
-        .clk_src = RMT_CLK_SRC_DEFAULT, // select source clock
-        .resolution_hz = RMT_LED_STRIP_RESOLUTION_HZ,
-        .mem_block_symbols = 64, // increase the block size can make the LED less flickering
-        .trans_queue_depth = 4, // set the number of transactions that can be pending in the background
+            .gpio_num = (gpio_num_t) pin,
+            .clk_src = RMT_CLK_SRC_DEFAULT, // select source clock
+            .resolution_hz = RMT_LED_STRIP_RESOLUTION_HZ,
+            .mem_block_symbols = 64, // increase the block size can make the LED less flickering
+            .trans_queue_depth = 4, // set the number of transactions that can be pending in the background
     };
     ESP_ERROR_CHECK(rmt_new_tx_channel(&tx_chan_config, &led_channel));
 
     led_strip_encoder_config_t encoder_config = {
-        .resolution = RMT_LED_STRIP_RESOLUTION_HZ,
+            .resolution = RMT_LED_STRIP_RESOLUTION_HZ,
     };
     ESP_ERROR_CHECK(rmt_new_led_strip_encoder(&encoder_config, &led_encoder));
     ESP_ERROR_CHECK(rmt_enable(led_channel));
@@ -43,74 +47,64 @@ void initStatusLED(int8_t pin)
 }
 
 // Set the LED to red
-void statusLEDSetError()
-{
+void statusLEDSetError() {
     led_color_values[0] = 0;
-    led_color_values[1] = 100;
+    led_color_values[1] = 50;
     led_color_values[2] = 0;
-
-    ESP_ERROR_CHECK(rmt_transmit(led_channel, led_encoder, led_color_values, sizeof(led_color_values), &tx_config));
-
-    ESP_ERROR_CHECK(rmt_tx_wait_all_done(led_channel, portMAX_DELAY));
+    show();
 }
 
 // Set the LED to yellow
-void statusLEDSetWarning()
-{
-    led_color_values[0] = 100;
-    led_color_values[1] = 100;
+void statusLEDSetWarning() {
+    led_color_values[0] = 50;
+    led_color_values[1] = 50;
     led_color_values[2] = 0;
-
-    ESP_ERROR_CHECK(rmt_transmit(led_channel, led_encoder, led_color_values, sizeof(led_color_values), &tx_config));
-
-    ESP_ERROR_CHECK(rmt_tx_wait_all_done(led_channel, portMAX_DELAY));
+    show();
 }
 
 // Set the LED to green
-void statusLEDSetOK()
-{
-    led_color_values[0] = 100;
+void statusLEDSetOK() {
+    led_color_values[0] = 50;
     led_color_values[1] = 0;
     led_color_values[2] = 0;
 
-    ESP_ERROR_CHECK(rmt_transmit(led_channel, led_encoder, led_color_values, sizeof(led_color_values), &tx_config));
-
-    ESP_ERROR_CHECK(rmt_tx_wait_all_done(led_channel, portMAX_DELAY));
+    show();
 }
 
 // Turn off the LED
-void SetStatusLEDOff()
-{
+void SetStatusLEDOff() {
     led_color_values[0] = 0;
     led_color_values[1] = 0;
     led_color_values[2] = 0;
 
-    ESP_ERROR_CHECK(rmt_transmit(led_channel, led_encoder, led_color_values, sizeof(led_color_values), &tx_config));
-    ESP_ERROR_CHECK(rmt_tx_wait_all_done(led_channel, portMAX_DELAY));
+    show();
 }
 
+void SetAllLEDsOff() {
+    for (int i = 0; i < 3 * NUMPIXELS; i++) {
+        led_color_values[i] = 0;
+    }
+    show();
+}
 
-void SetBatteryLEDColor(uint8_t level)
-{
+void SetBatteryLEDColor(uint8_t level) {
     // set the battery LED to red if the battery is below 20%
-    if (level < 20)
-    {
-        led_color_values[3] = 100;
+    if (level < 20) {
+        led_color_values[3] = 50;
         led_color_values[4] = 0;
         led_color_values[5] = 0;
     }
-    // set the battery LED to yellow if the battery is below 50%
-    else if (level < 50)
-    {
-        led_color_values[3] = 30;
-        led_color_values[4] = 100;
+        // set the battery LED to yellow if the battery is below 50%
+    else if (level < 50) {
+        led_color_values[3] = 50;
+        led_color_values[4] = 50;
         led_color_values[5] = 0;
     }
-    // set the battery LED to green if the battery is above 50%
-    else
-    {
+        // set the battery LED to green if the battery is above 50%
+    else {
         led_color_values[3] = 0;
-        led_color_values[4] = 100;
+        led_color_values[4] = 50;
         led_color_values[5] = 0;
     }
+    show();
 }

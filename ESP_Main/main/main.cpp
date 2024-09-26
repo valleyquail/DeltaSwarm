@@ -17,19 +17,16 @@ uint8_t hardcoded_mac_address[6] = {0x48, 0xCA, 0x43, 0x09, 0x59, 0x6C};
 
 Robot robot(ROBOT_NUM);
 
-extern "C" void app_main(void)
-{
-    for (int i = 0; i < 100; ++i)
-    {
+extern "C" void app_main(void) {
+    for (int i = 0; i < 100; ++i) {
         printf("Launching in %i ms\n", (100 - i) * 20);
         vTaskDelay(20 / portTICK_PERIOD_MS);
     }
     printf("Starting up\n");
-    vTaskDelay(100 / portTICK_PERIOD_MS);
     initStatusLED(NEOPIXEL_PIN);
 
     statusLEDSetWarning();
-    SetBatteryLEDColor(0.5);
+    SetBatteryLEDColor(30);
 
     //    esp_base_mac_addr_get(hardcoded_mac_address);
     //    printf("MAC Address: %02X:%02X:%02X:%02X:%02X:%02X\n", hardcoded_mac_address[0], hardcoded_mac_address[1],
@@ -45,15 +42,13 @@ extern "C" void app_main(void)
 
     //    xLaunchROSNode(nullptr);
     //
-    while (!pico_i2c_init())
-    {
+    while (!pico_i2c_init()) {
         statusLEDSetError();
         vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 
     printf("I2C initialized\n");
-    while (!test_pico_connection())
-    {
+    while (!test_pico_connection()) {
         statusLEDSetError();
         vTaskDelay(1000 / portTICK_PERIOD_MS);
         SetStatusLEDOff();
@@ -63,24 +58,23 @@ extern "C" void app_main(void)
     statusLEDSetOK();
     printf("I2C confirmed\n");
     //    ESP_ERROR_CHECK(uros_network_interface_initialize());
-    for (;;)
-    {
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+    bool flip_speed = true;
+    for (;;) {
         printf("Still alive\n");
-    }
-    //    bool flip_speed = true;
-    //    for (;;) {
-    //        if (flip_speed) {
-    //            picoSendMovement(0.5, 1, 0, true);
-    //            statusLEDSetOK();
-    //            printf("Sent movement flipped\n");
-    //        } else {
-    //            picoSendMovement(-0.5, 1, 0, true);
-    //            SetStatusLEDOff();
-    //            printf("Sent movement unflipped\n");
-    //        }
-    //        flip_speed = !flip_speed;
-    //        vTaskDelay(5000 / portTICK_PERIOD_MS);
-    //
-    //    };
+
+        if (flip_speed) {
+            statusLEDSetOK();
+            picoSendMovement(0.5, 1, 0, true);
+
+            printf("Sent movement flipped\n");
+        } else {
+            statusLEDSetWarning();
+            picoSendMovement(-0.5, 1, 0, true);
+            printf("Sent movement unflipped\n");
+        }
+        flip_speed = !flip_speed;
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
+
+    };
 }

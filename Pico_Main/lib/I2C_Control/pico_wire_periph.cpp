@@ -46,9 +46,13 @@ static char pico_buffer[33];
 void onReceive(int numBytes) {
     for (int i = 0; i < numBytes; i++) {
         pico_buffer[i] = Wire1.read();
-        Serial.printf("%i", pico_buffer[i]);
+    }
+#ifdef I2C_DEBUG
+    for (int i = 0; i < numBytes; i++) {
+        Serial.printf("%c", pico_buffer[i]);
     }
     Serial.printf("\n");
+#endif
     pico_register = pico_buffer[0];
     current_packet = &data_packets[address_map[pico_register]._array_index];
     current_packet->data_len = address_map[pico_register]._data_len;
