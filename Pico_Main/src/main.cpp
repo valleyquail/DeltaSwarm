@@ -18,15 +18,18 @@ void setup() {
 
     Serial.begin(115200);
 
-
+    const int interval = 10;
     for (int i = 0; i < 100; ++i) {
-        Serial.printf("Launching in %i ms\n", (100 - i) * 20);
-        sleep_ms(20);
+        Serial.printf("Launching in %i ms\n", (100 - i) * interval);
+        sleep_ms(interval);
     }
     statusLED.SetError();
 
     Serial.printf("I2C from ESP\n");
-    register_i2c_function(reinterpret_cast<i2c_response_t>(&motionCallback), PICO_MOTOR_COMMAND_REGISTER);
+    register_i2c_function(reinterpret_cast<i2c_response_t>(&motionCallback), PICO_MOTOR_COMMAND_REGISTER,
+                          MOTOR_COMMAND_SIZE);
+    register_i2c_function(reinterpret_cast<i2c_response_t>(&testCallback), TEST_CONNECTION_REGISTER,
+                          TEST_CONNECTION_SIZE);
 
     initPicoPeriph();
 

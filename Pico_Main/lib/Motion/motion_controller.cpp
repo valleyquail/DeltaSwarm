@@ -4,6 +4,7 @@
 #include "RPi_Pico_TimerInterrupt.h"
 #include "encoder.h"
 #include "../I2C_Control/i2c_control.h"
+#include "pico/double.h"
 
 // Physical constants for the robot that detmine how the robot moves
 const float WHEEL_RADIUS = 0.0325; // meters
@@ -81,7 +82,7 @@ void MotionController::setSpeedFromI2C(const uint8_t *speeds) {
     auto omega = (float) (0xFFFF & (speeds[8] << 24 | speeds[9] << 16 | speeds[10] << 8 | speeds[11]));
     // Get a boolean value for if the robot should keep its orientation
     bool orientation = speeds[16] & 0x01;
-#ifdef DEBUG
+#ifdef SPEEDS_DEBUG
     Serial.printf("Speed: %f, Theta: %f, Omega: %f\n", speed, theta, omega);
 #endif
     setSpeed(speed, theta, omega);

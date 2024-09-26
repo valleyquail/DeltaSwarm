@@ -28,7 +28,7 @@ public:
      * @param speeds array from the I2C interrupt that contains the speeds for each motor
      */
     static void setSpeedFromI2C(const uint8_t *speeds);
-    static void setM1PWM(int speed);
+//    static void setM1PWM(int speed);
     // Stops the robot and sets the motors to idle
     static void stop();
     void debugMotorSpeeds();

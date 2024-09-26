@@ -82,15 +82,20 @@ bool pico_i2c_init()
 
 bool test_pico_connection()
 {
-    // Address
-    uint8_t reg_addr = PICO_MOTOR_COMMAND_REGISTER;
     // Check that the ok is received:
-    uint8_t check_ok[] = {'x', 'x'};
-    // Write to the Pico's motor command address and then check that it receives
-    // the 'ok' buffer to make sure that it is communicating properly
-    i2c_master_write_read_device(i2c_master_port, PICO_ADDRESS, &reg_addr, 1, check_ok, 2,
+    uint8_t set_data[] = {TEST_CONNECTION_REGISTER, 'O', 'K'};
+    uint8_t check_ok[] = {'x', 'x', 'x'};
+    //Load data into the rp2040 to check that it is getting the values sent from the ESP
+    // Write to the rp2040's motor command address and then check that it receives
+    // the 'OK' buffer to make sure that it is communicating properly
+    i2c_master_write_read_device(i2c_master_port, PICO_ADDRESS, set_data, 3, check_ok, TEST_CONNECTION_SIZE,
                                  I2C_MASTER_TIMEOUT_MS / configTICK_RATE_HZ);
-    if ((char)check_ok[0] == 'O' && (char)check_ok[1] == 'K')
+    for (int i = 0 ; i < 3; i++)
+    {
+        printf("%i ", check_ok[i]);
+    }
+    printf("\n");
+    if (check_ok[0] == 'O' && check_ok[1] == 'K')
     {
         printf("connection to the pico is working\n");
         return true;

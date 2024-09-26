@@ -23,6 +23,8 @@
 // This is information that is sent to the pico
 #define MOTOR_COMMAND_SIZE 13
 #define PICO_MOTOR_COMMAND_REGISTER 0x00
+#define TEST_CONNECTION_REGISTER 0x03
+#define TEST_CONNECTION_SIZE 2
 
 // This is information that will be sent from the pico
 #define ODOMETRY_COMMAND_SIZE 16

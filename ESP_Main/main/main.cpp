@@ -55,9 +55,9 @@ extern "C" void app_main(void)
     while (!test_pico_connection())
     {
         statusLEDSetError();
-        vTaskDelay(100 / portTICK_PERIOD_MS);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
         SetStatusLEDOff();
-        vTaskDelay(100 / portTICK_PERIOD_MS);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 
     statusLEDSetOK();

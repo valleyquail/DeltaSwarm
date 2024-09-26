@@ -4,7 +4,7 @@
 #define I2C_CONTROL_H
 
 #include <pico/stdio.h>
-#include <pico/stdlib.h>
+#include <cstdio>
 #include "../../include/config.h"
 #include "unordered_map"
 
@@ -18,7 +18,7 @@
 
 typedef void (*i2c_response_t)(int8_t packet_index);
 
-void register_i2c_function(i2c_response_t callback, int8_t packet_address);
+void register_i2c_function(i2c_response_t callback, int8_t packet_address, int8_t data_len);
 
 // This is used as a general structure to maintain data handling throughout the
 // program. It has a few uses:
@@ -38,7 +38,7 @@ void register_i2c_function(i2c_response_t callback, int8_t packet_address);
 // is_receiving_message: This is used to signal that the Pico is currently
 struct DataPacket {
     uint8_t buffer[32];
-    uint8_t index;
+    uint8_t data_len;
     union {
         bool message_sent;
         bool not_receiving_message;
@@ -51,13 +51,14 @@ extern struct DataPacket data_packets[];
 
 
 void initPicoPeriph();
-
 void initPicoController();
 
 void bus_scan();
 
 
 //I2C callbacks
+//______________________________________________________________________________________________________________________
+void testCallback(int8_t packet_index);
 void motionCallback(int8_t packet_index);
 
 
