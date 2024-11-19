@@ -9,12 +9,12 @@
 
 
 void initPicoController() {
-    Wire.setSCL(SCL_PIN_0);
-    Wire.setSDA(SDA_PIN_0);
+    Wire1.setSCL(SCL_PIN_1);
+    Wire1.setSDA(SDA_PIN_1);
     Serial.println("huh");
-    Wire.setClock(100000);
+    Wire1.setClock(100000);
     Serial.println("huh");
-    Wire.begin();
+    Wire1.begin();
 
     Serial.printf("initialized the pico as a master\n");
 }
@@ -44,10 +44,10 @@ void bus_scan() {
         int ret;
         uint8_t rxdata;
         if (reserved_addr(addr))
-            ret = PICO_ERROR_GENERIC;
+            ret = 1;
         else
 
-            ret = i2c_read_blocking(i2c0, addr, &rxdata, 1, false);
+            ret = i2c_read_blocking(i2c1, addr, &rxdata, 1, false);
 
         Serial.printf(ret < 0 ? "." : "@");
         Serial.printf(addr % 16 == 15 ? "\n" : "  ");

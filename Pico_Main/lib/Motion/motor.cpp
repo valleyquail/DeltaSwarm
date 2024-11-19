@@ -53,7 +53,7 @@ void Motor::setSpeed(int speed) {
     }
         // If the speed is negative, set the direction to reverse
     else if (speed < 0) {
-//        speed -= DEADBAND_END;
+        speed -= DEADBAND_END;
         pwmA->setPWM_Int(pwm_pin_A, PWM_FREQ, 0);
         pwmB->setPWM_Int(pwm_pin_B, PWM_FREQ, -speed);
 #ifdef ENCODER_DEBUG

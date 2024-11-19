@@ -45,7 +45,7 @@ static char pico_buffer[33];
 
 void onReceive(int numBytes) {
     for (int i = 0; i < numBytes; i++) {
-        pico_buffer[i] = Wire1.read();
+        pico_buffer[i] = Wire.read();
     }
 #ifdef I2C_DEBUG
     for (int i = 0; i < numBytes; i++) {
@@ -65,7 +65,7 @@ void onReceive(int numBytes) {
 }
 
 void onRequest() {
-    Wire1.write(current_packet->buffer, current_packet->data_len);
+    Wire.write(current_packet->buffer, current_packet->data_len);
 #ifdef DEBUG
     Serial.printf("Sent:");
     for (int i = 0; i < current_packet->data_len; i++) {
@@ -79,12 +79,12 @@ void onRequest() {
 
 void initPicoPeriph() {
     // Set up the device as a peripheral
-    Wire1.setSDA(SDA_PIN_1);
-    Wire1.setSCL(SCL_PIN_1);
-    Wire1.setClock(PICO_ESP_FREQ);
-    Wire1.begin(PICO_ADDRESS);
-    Wire1.onRequest(onRequest);
-    Wire1.onReceive(onReceive);
+    Wire.setSDA(SDA_PIN_0);
+    Wire.setSCL(SCL_PIN_0);
+    Wire.setClock(PICO_ESP_FREQ);
+    Wire.onRequest(onRequest);
+    Wire.onReceive(onReceive);
+    Wire.begin(PICO_ADDRESS);
     Serial.printf("initialized the pico as a peripheral at address 0x%x\n", PICO_ADDRESS);
     current_packet = &data_packets[address_map[TEST_CONNECTION_REGISTER]._array_index];
     current_packet->buffer[1] = 'x';

@@ -13,12 +13,13 @@ void testCallback(int8_t packet_index) {
 
 void motionCallback(int8_t packet_index) {
 
-#ifdef DEBUG
+#ifdef I2C_DEBUG
     Serial.printf("Motor speeds: ");
-    for (int i = 0; i < 12; i++) {
-        Serial.printf("%i ", data_packets[packet_index].buffer[i+1]);
+    for (int i = 0; i < data_packets[packet_index].data_len; i++) {
+        Serial.printf("%x ", data_packets[packet_index].buffer[i]);
     }
+    Serial.println();
 #endif
     // Add one to the data packet buffer to skip the register byte
-    MotionController::setSpeedFromI2C(data_packets[packet_index].buffer + 1);
+    MotionController::setSpeedFromI2C(data_packets[packet_index].buffer);
 }

@@ -104,6 +104,14 @@ bool test_pico_connection()
     return false;
 }
 
+inline void flipEndian(float value, uint8_t *buffer){
+    buffer[0] = (uint8_t) ((buffer[0]) & 0xff);
+    buffer[1] = (uint8_t) ((buffer[1]) & 0xff);
+    buffer[2] = (uint8_t) (buffer[2] & 0xff);
+    buffer[3] = (uint8_t) (buffer[3] & 0xff);
+}
+
+
 /***
  * Sends a movement command to the Pico
  * @param speed the speed of the robot
@@ -120,10 +128,14 @@ void picoSendMovement(float speed, float theta, float omega, bool orientation)
 #endif
     // Converts the floats raw bytes and then copies the information into the buffer to send to the pico for calling
     //  sending over the desired motion
+    //Need to flip the bits, out of order
     motorCommandBuffer[0] = PICO_MOTOR_COMMAND_REGISTER;
-    memcpy(motorCommandBuffer + 1, (uint8_t *)&speed, 4);
-    memcpy(motorCommandBuffer + 5, (uint8_t *)&theta, 4);
-    memcpy(motorCommandBuffer + 9, (uint8_t *)&omega, 4);
+    memcpy(motorCommandBuffer + 1, (uint32_t *)&speed, 4);
+    memcpy(motorCommandBuffer + 5, (uint32_t *)&theta, 4);
+    memcpy(motorCommandBuffer + 9, (uint32_t *)&omega, 4);
+    flipEndian(speed, motorCommandBuffer + 1);
+    flipEndian(theta, motorCommandBuffer + 5);
+    flipEndian(omega, motorCommandBuffer + 9);
 #ifdef DEBUG
     printf("Motor command: %f, %f, %f\n", speed, theta, omega);
     for (int i = 0; i < MOTOR_COMMAND_SIZE; i++)

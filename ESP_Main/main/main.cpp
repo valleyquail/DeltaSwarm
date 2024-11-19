@@ -12,6 +12,7 @@
 #include "esp_mac.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include <math.h>
 
 uint8_t hardcoded_mac_address[6] = {0x48, 0xCA, 0x43, 0x09, 0x59, 0x6C};
 
@@ -27,7 +28,6 @@ extern "C" void app_main(void) {
 
     statusLEDSetWarning();
     SetBatteryLEDColor(30);
-
     //    esp_base_mac_addr_get(hardcoded_mac_address);
     //    printf("MAC Address: %02X:%02X:%02X:%02X:%02X:%02X\n", hardcoded_mac_address[0], hardcoded_mac_address[1],
     //           hardcoded_mac_address[2], hardcoded_mac_address[3], hardcoded_mac_address[4],
@@ -41,18 +41,18 @@ extern "C" void app_main(void) {
     // #endif
 
     //    xLaunchROSNode(nullptr);
-    //
+    statusLEDSetError();
     while (!pico_i2c_init()) {
-        statusLEDSetError();
+
         vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 
     printf("I2C initialized\n");
     while (!test_pico_connection()) {
         statusLEDSetError();
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
         SetStatusLEDOff();
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
     }
 
     statusLEDSetOK();
@@ -65,12 +65,12 @@ extern "C" void app_main(void) {
 
         if (flip_speed) {
             statusLEDSetOK();
-            picoSendMovement(0.5, 1, 0, true);
+            picoSendMovement(0.5, M_PI_2, 0, true);
 
             printf("Sent movement flipped\n");
         } else {
             statusLEDSetWarning();
-            picoSendMovement(-0.5, 1, 0, true);
+            picoSendMovement(-0.5, M_PI_2, 0, true);
             printf("Sent movement unflipped\n");
         }
         flip_speed = !flip_speed;

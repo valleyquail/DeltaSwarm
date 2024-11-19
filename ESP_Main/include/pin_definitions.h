@@ -22,7 +22,7 @@
 #define GPIO_40 40
 #define GPIO_41 41
 #define GPIO_42 42
-#define GPIO_45 45
+
 
 // SPI
 #define ESP_CS1 9
@@ -35,8 +35,8 @@
 
 // I2C to Pico
 #define PICO_I2C_PORT 1
-#define PICO_SCL1 47
-#define PICO_SDA1 48
+#define PICO_SCL1 48
+#define PICO_SDA1 45
 
 // I2C to other/from PI
 #define I2C_SLAVE_PORT 0

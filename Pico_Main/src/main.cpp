@@ -19,10 +19,10 @@ void setup() {
     Serial.begin(115200);
 
     const int interval = 10;
-    for (int i = 0; i < 100; ++i) {
-        Serial.printf("Launching in %i ms\n", (100 - i) * interval);
-        sleep_ms(interval);
-    }
+//    for (int i = 0; i < 100; ++i) {
+//        Serial.printf("Launching in %i ms\n", (100 - i) * interval);
+//        sleep_ms(interval);
+//    }
     statusLED.SetError();
 
     Serial.printf("I2C from ESP\n");
@@ -36,8 +36,8 @@ void setup() {
     statusLED.SetWarning();
 
 
-//    initPicoController();
-//    bus_scan();
+    initPicoController();
+
 //    config_icm42688();
 //    config_lis3mdl();
     Serial.printf("Testing?\n");
@@ -68,6 +68,7 @@ void loop() {
 //    read_sensors();
     delay(1000);
     Serial.printf("Looping\n");
+//    bus_scan();
 //    delay(1000);
 //    unsigned long currTime = millis();
 //    for (int i = 0; i < 100; i++) {
