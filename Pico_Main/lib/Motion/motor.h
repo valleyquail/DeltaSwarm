@@ -7,8 +7,8 @@
 #ifndef __MOTOR_H__
 #define __MOTOR_H__
 
-#define PWM_SCALING_FACTOR 5
-#define DEADBAND_END 65800
+// Deadband for the motor PWM
+#define DEADBAND_END 60
 
 
 // TODO: Maybe make a child class for drive motors vs actuator motors so that
@@ -50,7 +50,7 @@ protected:
     // TODO Determine the timer interval
     volatile int encoderSpeed = 0;
 
-    // Keep track of target speed
+    // Keep track of target speed in terms of encoder ticks per timer interval
     int target_speed = 0;
     // Integral control
     int sumError = 0;
@@ -107,6 +107,8 @@ public:
     friend void encoderInterruptB(void *motor_instance);
 
     [[nodiscard]] int getTargetSpeed() const;
+
+    void initIRQ();
 };
 
 extern Motor motor1;

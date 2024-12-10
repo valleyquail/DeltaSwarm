@@ -63,6 +63,8 @@ void calcEncoderDelta(void *motor_instance) {
     auto *motor = static_cast<Motor *>(motor_instance);
     motor->encoderSpeed = (motor->curr_movement_encoder_count - motor->prevCount);
     motor->prevCount = motor->curr_movement_encoder_count;
+    if (motor->target_speed < 0)
+        motor->encoderSpeed *= -1;
 }
 
 void encoderInterruptA(void *motor_instance) {
@@ -90,6 +92,6 @@ void encoderInterruptB(void *motor_instance) {
         motor->curr_movement_encoder_count++;
     }
 #ifdef ENCODER_DEBUG_2
-    Serial.printf("Encoder count B for %i: %d\n", motor->encoder_pin_A, motor->curr_movement_encoder_count);
+    Serial.printf("Encoder count B for %i: %d\n", motor->encoder_pin_B, motor->curr_movement_encoder_count);
 #endif
 }
