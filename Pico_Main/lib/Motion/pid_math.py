@@ -82,7 +82,7 @@ def approximate_pid(timer_ms: int, speed_ms: float, wheel_diameter: float, gear_
     # PID constants
     kp = 0.2
     ki = 0.1
-    kd = 0.01
+    kd = 0.2
     
     # Simulation constants
     max_pwm = 100  # Maximum PWM duty cycle
@@ -137,7 +137,7 @@ def approximate_pid(timer_ms: int, speed_ms: float, wheel_diameter: float, gear_
 
 
 if __name__ == "__main__":
-    speed = 0.1 #m/s
+    speed = 1 #m/s
     p_vals, i_vals, d_vals, pid_speeds, sim_time = approximate_pid(20, speed, wheel_diameter, gear_ratio)
     
     plt.plot(sim_time, p_vals, label="P")

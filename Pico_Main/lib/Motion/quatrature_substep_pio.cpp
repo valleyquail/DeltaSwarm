@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <Arduino.h>
 #include <stdio.h>
 #include <string.h>
 #include "pico/stdlib.h"
@@ -13,7 +12,6 @@
 #include "hardware/pwm.h"
 #include <hardware/divider.h>
 #include "quad_substep.h"
-#include "../../include/pin_definitions.h"
 #include "quadrature_substep_pio.pio.h"
 
 //
@@ -34,7 +32,7 @@
 // attached to a DC motor (and calibrate phase sizes)
 
 const int dir_pin = 5;
-const int pwm_pin = MOTOR3_A;
+const int pwm_pin = 9;
 
 void set_pwm(float value) {
     int ivalue = value * 6250;
@@ -64,12 +62,9 @@ void init_pwm(void) {
 
 
 
-
-
-
 // internal helper functions (not to be used by user code)
 
-void read_pio_data(substep_state_t *state, uint *step, uint *step_us, uint *transition_us, int *forward) {
+static void read_pio_data(substep_state_t *state, uint *step, uint *step_us, uint *transition_us, int *forward) {
     int cycles;
 
     // get the raw data from the PIO state machine
@@ -97,7 +92,7 @@ static uint get_step_start_transition_pos(substep_state_t *state, uint step) {
 // compute speed in "sub-steps per 2^20 us" from a delta substep position and
 // delta time in microseconds. This unit is cheaper to compute and use, so we
 // only convert to "sub-steps per second" once per update, at most
-int substep_calc_speed(int delta_substep, int delta_us) {
+static int substep_calc_speed(int delta_substep, int delta_us) {
     return ((int64_t) delta_substep << 20) / delta_us;
 }
 
@@ -268,10 +263,8 @@ void substep_calibrate_phases(PIO pio, uint sm) {
         quadrature_encoder_substep_get_counts(pio, sm, &step, &cycles, &step_us);
 
         // wait until we have a transition
-        if (step == last_step) {
-            Serial.println(index);
+        if (step == last_step)
             continue;
-        }
 
         // synchronize the index with the lower 2 bits of the current step
         if (index < 0 && index > -4 && (step & 3) == 1)
@@ -280,7 +273,7 @@ void substep_calibrate_phases(PIO pio, uint sm) {
         // convert the "time since last transition" to an absolute microsecond
         // timestamp
         if (cycles > 0) {
-            Serial.printf("error: expected forward motion\n");
+            printf("error: expected forward motion\n");
             return;
         }
         cur_us = step_us + (cycles * 13) / clocks_per_us;
@@ -299,11 +292,11 @@ void substep_calibrate_phases(PIO pio, uint sm) {
     }
 
 #ifdef SHOW_ALL_SAMPLES
-    Serial.printf("full sample table:\n");
+    printf("full sample table:\n");
     for (i = 0; i < sample_count; i++) {
-        Serial.printf("%d ", result[i]);
+        printf("%d ", result[i]);
         if ((i & 3) == 3)
-            Serial.printf("\n");
+            printf("\n");
     }
 #endif
 
@@ -314,9 +307,9 @@ void substep_calibrate_phases(PIO pio, uint sm) {
     calib[2] = ((sum[0] + sum[1] + sum[2]) * 256 + total / 2) / total;
 
     // print calibration information
-    Serial.printf("calibration command:\n\n");
-    Serial.printf("\tsubstep_set_calibration_data(&state, %d, %d, %d);\n\n",
-                  calib[0], calib[1], calib[2]);
+    printf("calibration command:\n\n");
+    printf("\tsubstep_set_calibration_data(&state, %d, %d, %d);\n\n",
+           calib[0], calib[1], calib[2]);
 }
 
 
@@ -332,7 +325,7 @@ void substep_set_calibration_data(substep_state_t *state, int step0, int step1, 
     state->calibration_data[3] = step2;
 }
 
-
+//
 //
 //int main(void)
 //{
@@ -340,13 +333,13 @@ void substep_set_calibration_data(substep_state_t *state, int step0, int step1, 
 //
 //    // base pin to connect the A phase of the encoder. the B phase must be
 //    // connected to the next pin
-//    const uint PIN_A = 10;
+//    uint PIN_A = 20;
 //
 //    stdio_init_all();
-//    Serial.printf("Hello from quadrature encoder substep\n");
+//    printf("Hello from quadrature encoder substep\n");
 //
 //    PIO pio = pio0;
-//    const uint sm = 0;
+//    uint sm = 0;
 //
 //    pio_add_program(pio, &quadrature_encoder_substep_program);
 //    substep_init_state(pio, sm, PIN_A, &state);
@@ -355,7 +348,7 @@ void substep_set_calibration_data(substep_state_t *state, int step0, int step1, 
 //
 //    // - turn on a DC motor at 50% PWM
 //    init_pwm();
-//    set_pwm(-0.5);
+//    set_pwm(0.9);
 //    // - wait for the motor to reach a reasonably stable speed
 //    sleep_ms(2000);
 //    // - run the phase size calibration code
@@ -376,7 +369,7 @@ void substep_set_calibration_data(substep_state_t *state, int step0, int step1, 
 //
 //        if (last_position != state.position || last_speed != state.speed || last_raw_step != state.raw_step) {
 //            // print out the result
-//            Serial.printf("pos: %-10d  speed: %-10d  raw_steps: %-10d\n", state.position, state.speed, state.raw_step);
+//            printf("pos: %-10d  speed: %-10d  raw_steps: %-10d\n", state.position, state.speed, state.raw_step);
 //            last_position = state.position;
 //            last_speed = state.speed;
 //            last_raw_step = state.raw_step;

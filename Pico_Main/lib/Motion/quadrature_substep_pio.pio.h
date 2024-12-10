@@ -4,20 +4,20 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if !PICO_NO_HARDWARE
+
 #include "hardware/pio.h"
+
 #endif
 
+#include "quad_substep.h"
 // -------------------------- //
 // quadrature_encoder_substep //
 // -------------------------- //
 
 #define quadrature_encoder_substep_wrap_target 9
 #define quadrature_encoder_substep_wrap 14
+#define quadrature_encoder_substep_pio_version 0
 
 static const uint16_t quadrature_encoder_substep_program_instructions[] = {
         0x4020, //  0: in     x, 32
@@ -61,6 +61,10 @@ static const struct pio_program quadrature_encoder_substep_program = {
         .instructions = quadrature_encoder_substep_program_instructions,
         .length = 32,
         .origin = 0,
+        .pio_version = quadrature_encoder_substep_pio_version,
+#if PICO_PIO_VERSION > 0
+        .used_gpio_ranges = 0x0
+#endif
 };
 
 static inline pio_sm_config quadrature_encoder_substep_program_get_default_config(uint offset) {
@@ -70,19 +74,17 @@ static inline pio_sm_config quadrature_encoder_substep_program_get_default_confi
 }
 
 #include "hardware/clocks.h"
-#include "hardware/timer.h"
 #include "hardware/gpio.h"
 #include "hardware/sync.h"
+#include "hardware/timer.h"
+
 // "substep" version low-level interface
 //
 // note: user code should use the high level functions in quadrature_encoder.c
 // and not call these directly
 // initialize the PIO state and the substep_state_t structure that keeps track
 // of the encoder state
-
-//TODO: Change the function so that both encoder pins can be specified
-static inline void quadrature_encoder_substep_program_init(PIO pio, uint sm, uint pin_A)
-{
+static inline void quadrature_encoder_substep_program_init(PIO pio, uint sm, uint pin_A) {
     uint pin_state, position, ints;
     pio_gpio_init(pio, pin_A);
     pio_gpio_init(pio, pin_A + 1);
@@ -116,17 +118,25 @@ static inline void quadrature_encoder_substep_program_init(PIO pio, uint sm, uin
     // mapping to the current phase (input pin state). That simplifies the code
     // to compensate for differences in encoder phase sizes:
     switch (pin_state) {
-        case 0: position = 0; break;
-        case 1: position = 3; break;
-        case 2: position = 1; break;
-        case 3: position = 2; break;
+        case 0:
+            position = 0;
+            break;
+        case 1:
+            position = 3;
+            break;
+        case 2:
+            position = 1;
+            break;
+        case 3:
+            position = 2;
+            break;
     }
     pio_sm_exec(pio, sm, pio_encode_set(pio_y, position));
     pio_sm_set_enabled(pio, sm, true);
     restore_interrupts(ints);
 }
-static inline void quadrature_encoder_substep_get_counts(PIO pio, uint sm, uint *step, int *cycles, uint *us)
-{
+
+static inline void quadrature_encoder_substep_get_counts(PIO pio, uint sm, uint *step, int *cycles, uint *us) {
     int i, pairs;
     uint ints;
     pairs = pio_sm_get_rx_fifo_level(pio, sm) >> 1;
@@ -142,6 +152,4 @@ static inline void quadrature_encoder_substep_get_counts(PIO pio, uint sm, uint 
 }
 
 #endif
-#ifdef __cplusplus
-}
-#endif
+

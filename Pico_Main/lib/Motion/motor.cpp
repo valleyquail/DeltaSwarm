@@ -10,7 +10,7 @@ Motor::Motor(uint8_t pwmPinA, uint8_t pwmPinB, uint8_t encoderPinA, uint8_t enco
     pwm_pin_A = pwmPinA;
     pwm_pin_B = pwmPinB;
     encoder_pin_A = encoderPinA;
-//    encoder_pin_B = encoderPinB;
+    encoder_pin_B = encoderPinB;
 //
 //    this->pwmA = new RP2040_PWM(pwm_pin_A, PWM_FREQ, 0);
 //    this->pwmB = new RP2040_PWM(pwm_pin_B, PWM_FREQ, 0);
@@ -32,8 +32,6 @@ void Motor::initIRQ(){
     gpio_set_dir(encoder_pin_B, GPIO_IN);
     gpio_set_irq_enabled(encoder_pin_A, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true);
     gpio_set_irq_enabled(encoder_pin_B, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true);
-
-
 }
 
 void Motor::setPIDVals(float kp, float ki, float kd) {

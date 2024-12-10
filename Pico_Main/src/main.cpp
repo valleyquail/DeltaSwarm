@@ -10,6 +10,8 @@
 
 #include "../lib/Testing/serial_debugger.h"
 #include "../lib/Odometry/sensors_config.h"
+#include "../lib/Motion/quad_substep.h"
+#include "../lib/Motion/quadrature_substep_pio.pio.h"
 
 MotionController motionController = MotionController();
 StatusLED statusLED = StatusLED(NEOPIXEL_PIN);
@@ -19,47 +21,56 @@ void setup() {
     Serial.begin(115200);
 
     const int interval = 10;
-//    for (int i = 0; i < 100; ++i) {
-//        Serial.printf("Launching in %i ms\n", (100 - i) * interval);
-//        sleep_ms(interval);
-//    }
+    for (int i = 0; i < 100; ++i) {
+        Serial.printf("Launching in %i ms\n", (100 - i) * interval);
+        sleep_ms(interval);
+    }
     statusLED.SetError();
 
-    Serial.printf("I2C from ESP\n");
-    register_i2c_function(reinterpret_cast<i2c_response_t>(&motionCallback), PICO_MOTOR_COMMAND_REGISTER,
-                          MOTOR_COMMAND_SIZE);
-    register_i2c_function(reinterpret_cast<i2c_response_t>(&testCallback), TEST_CONNECTION_REGISTER,
-                          TEST_CONNECTION_SIZE);
+//    Serial.printf("I2C from ESP\n");
+//    register_i2c_function(reinterpret_cast<i2c_response_t>(&motionCallback), PICO_MOTOR_COMMAND_REGISTER,
+//                          MOTOR_COMMAND_SIZE);
+//    register_i2c_function(reinterpret_cast<i2c_response_t>(&testCallback), TEST_CONNECTION_REGISTER,
+//                          TEST_CONNECTION_SIZE);
 
-    initPicoPeriph();
+//    initPicoPeriph();
 
     statusLED.SetWarning();
 
 
-    initPicoController();
+//    initPicoController();
 
 //    config_icm42688();
 //    config_lis3mdl();
     Serial.printf("Testing?\n");
 
-    statusLED.SetOK();
+//    statusLED.SetOK();
 
+    int PIN_A = MOTOR2_A_ENC;
     delay(1000);
-//    for (int i = 20000; i < 200000; i+=100) {
-//        motor1.setTargetSpeed(i);
-//        delay(10);
-//        int currSpeed = motor1.getEncoderSpeed();
-//        if (currSpeed > 0){
-//            Serial.printf("Deadband ended at %i\n", i);
-//            break;
-//        }
-//        Serial.println(i);
-//    }
 
-//MotionController::setSpeed(1, 1, 0);
-//    motionController.runPIDUpdate();
-//    motionController.debugMotorSpeeds();
+    substep_state_t state;
+    PIO pio = pio1;
+    uint sm = 0;
 
+    Serial.println("here");
+    pio_add_program(pio, &quadrature_encoder_substep_program);
+
+    Serial.println("here2");
+    substep_init_state(pio, sm, PIN_A, &state);
+
+    Serial.printf("Hello from quadrature encoder substep\n");
+    init_pwm();
+    Serial.println("PWM initialized");
+    set_pwm(0.9);
+    // - wait for the motor to reach a reasonably stable speed
+    sleep_ms(2000);
+    // - run the phase size calibration code
+    Serial.printf("Calibrating\n");
+    substep_calibrate_phases(pio, sm);
+    Serial.printf("Calibrated\n");
+    // - stop the motor
+    set_pwm(0);
 
 }
 
