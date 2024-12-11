@@ -13,8 +13,9 @@
 #include "../lib/Motion/quad_substep.h"
 #include "../lib/Motion/quadrature_substep_pio.pio.h"
 
+
 MotionController motionController = MotionController();
-StatusLED statusLED = StatusLED(NEOPIXEL_PIN);
+StatusLED *statusLED;
 
 void setup() {
 
@@ -25,7 +26,24 @@ void setup() {
         Serial.printf("Launching in %i ms\n", (100 - i) * interval);
         sleep_ms(interval);
     }
-    statusLED.SetError();
+    int PIN_A = MOTOR2_A_ENC;
+    delay(1000);
+
+    substep_state_t state;
+    PIO pio = pio0;
+    int sm = 0;
+    //Set all of pio0 state machines to be enables
+
+    pio_add_program(pio, &quadrature_encoder_substep_program);
+    substep_init_state(pio, sm, PIN_A, &state);
+    Serial.printf("here\n");
+    pio_claim_sm_mask(pio, 0b1111);
+    Serial.printf("State machines on pio0: %i\n", pio_claim_unused_sm(pio, false));
+    statusLED = (new StatusLED(NEOPIXEL_PIN));
+    Serial.println("Status LED initialized");
+
+    statusLED->SetError();
+    delay(1000);
 
 //    Serial.printf("I2C from ESP\n");
 //    register_i2c_function(reinterpret_cast<i2c_response_t>(&motionCallback), PICO_MOTOR_COMMAND_REGISTER,
@@ -34,30 +52,12 @@ void setup() {
 //                          TEST_CONNECTION_SIZE);
 
 //    initPicoPeriph();
-
-    statusLED.SetWarning();
-
-
 //    initPicoController();
 
 //    config_icm42688();
 //    config_lis3mdl();
     Serial.printf("Testing?\n");
-
-//    statusLED.SetOK();
-
-    int PIN_A = MOTOR2_A_ENC;
-    delay(1000);
-
-    substep_state_t state;
-    PIO pio = pio1;
-    uint sm = 0;
-
-    Serial.println("here");
-    pio_add_program(pio, &quadrature_encoder_substep_program);
-
-    Serial.println("here2");
-    substep_init_state(pio, sm, PIN_A, &state);
+    statusLED->SetOK();
 
     Serial.printf("Hello from quadrature encoder substep\n");
     init_pwm();

@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
+#include <Arduino.h>
 #include <stdio.h>
 #include <string.h>
 #include "pico/stdlib.h"
@@ -273,7 +273,7 @@ void substep_calibrate_phases(PIO pio, uint sm) {
         // convert the "time since last transition" to an absolute microsecond
         // timestamp
         if (cycles > 0) {
-            printf("error: expected forward motion\n");
+            Serial.printf("error: expected forward motion\n");
             return;
         }
         cur_us = step_us + (cycles * 13) / clocks_per_us;
@@ -292,11 +292,11 @@ void substep_calibrate_phases(PIO pio, uint sm) {
     }
 
 #ifdef SHOW_ALL_SAMPLES
-    printf("full sample table:\n");
+    Serial.printf("full sample table:\n");
     for (i = 0; i < sample_count; i++) {
-        printf("%d ", result[i]);
+        Serial.printf("%d ", result[i]);
         if ((i & 3) == 3)
-            printf("\n");
+            Serial.printf("\n");
     }
 #endif
 
@@ -307,8 +307,8 @@ void substep_calibrate_phases(PIO pio, uint sm) {
     calib[2] = ((sum[0] + sum[1] + sum[2]) * 256 + total / 2) / total;
 
     // print calibration information
-    printf("calibration command:\n\n");
-    printf("\tsubstep_set_calibration_data(&state, %d, %d, %d);\n\n",
+    Serial.printf("calibration command:\n\n");
+    Serial.printf("\tsubstep_set_calibration_data(&state, %d, %d, %d);\n\n",
            calib[0], calib[1], calib[2]);
 }
 

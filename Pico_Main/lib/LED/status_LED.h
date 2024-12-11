@@ -23,8 +23,12 @@ public:
     void SetOff();
     // Blue
     void showI2CFromESP();
+
+    Adafruit_NeoPixel getPixel();
+
+    void inspectPIOBlock();
 };
 
-extern StatusLED statusLED;
+extern StatusLED *statusLED;
 
 #endif

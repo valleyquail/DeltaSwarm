@@ -1,7 +1,7 @@
 #include "pico/stdlib.h"
 
-const uint8_t MOTOR1_A = 11;
-const uint8_t MOTOR1_B = 10;
+const uint8_t MOTOR1_A = 10;
+const uint8_t MOTOR1_B = 11;
 const uint8_t MOTOR2_A = 9;
 const uint8_t MOTOR2_B = 8;
 const uint8_t MOTOR3_A = 7;
@@ -13,8 +13,8 @@ const uint8_t MOTOR5_B = 2;
 const uint8_t MOTOR6_A = 1;
 const uint8_t MOTOR6_B = 0;
 
-const uint8_t MOTOR1_A_ENC = 19;
-const uint8_t MOTOR1_B_ENC = 18;
+const uint8_t MOTOR1_B_ENC = 19;
+const uint8_t MOTOR1_A_ENC = 18;
 const uint8_t MOTOR2_A_ENC = 20;
 const uint8_t MOTOR2_B_ENC = 21;
 const uint8_t MOTOR3_A_ENC = 22;

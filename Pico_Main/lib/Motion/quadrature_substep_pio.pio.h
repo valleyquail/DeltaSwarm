@@ -85,6 +85,7 @@ static inline pio_sm_config quadrature_encoder_substep_program_get_default_confi
 // initialize the PIO state and the substep_state_t structure that keeps track
 // of the encoder state
 static inline void quadrature_encoder_substep_program_init(PIO pio, uint sm, uint pin_A) {
+    //Clear the enabling so that it can set up
     uint pin_state, position, ints;
     pio_gpio_init(pio, pin_A);
     pio_gpio_init(pio, pin_A + 1);

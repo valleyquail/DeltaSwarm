@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include "pico/stdlib.h"
 #include "RP2040_PWM.h"
+#include "quad_substep.h"
 
 #ifndef __MOTOR_H__
 #define __MOTOR_H__
@@ -17,6 +18,12 @@
 //TODO: Need to add a lot of logic to handle the pulses for short movements since there is a large amount of
 // static friction within the motor that makes it difficult to move small amounts
 class Motor {
+private:
+#ifndef USE_ENCODER_INTERRUPTS
+    //PIO variables: DO NOT TOUCH
+    substep_state_t *enc_state;
+    uint block_num;
+#endif
 protected:
     // 20kHz PWM frequency
     const float PWM_FREQ = 20000.;
@@ -62,9 +69,14 @@ protected:
     void setSpeed(int speed);
 
 public:
-
+#ifdef USE_ENCODER_INTERRUPTS
     Motor(uint8_t pwm_in_A, uint8_t pwm_in_B, uint8_t encoder_pin_A, uint8_t encoder_pin_B);
 
+    void initIRQ();
+#else
+    Motor();
+    Motor(uint8_t pwm_in_A, uint8_t pwm_in_B, uint8_t encoder_pin_A, uint8_t encoder_pin_B, substep_state_t *state, uint block);
+#endif
     void setPIDVals(float kp, float ki, float kd);
 
     void updateSpeed();
@@ -108,7 +120,6 @@ public:
 
     [[nodiscard]] int getTargetSpeed() const;
 
-    void initIRQ();
 };
 
 extern Motor motor1;

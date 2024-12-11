@@ -26,11 +26,15 @@ const float MOTOR3_KD = .2;
 
 
 
-Motor motor1(MOTOR1_A, MOTOR1_B, MOTOR1_A_ENC, MOTOR1_B_ENC);
-// PIO Sub-stepping quad encoder calibration 55, 124, 199
-Motor motor2(MOTOR2_A, MOTOR2_B, MOTOR2_A_ENC, MOTOR2_B_ENC);
+//Motor motor1(MOTOR1_A, MOTOR1_B, MOTOR1_A_ENC, MOTOR1_B_ENC);
+//// PIO Sub-stepping quad encoder calibration 55, 124, 199
+//Motor motor2(MOTOR2_A, MOTOR2_B, MOTOR2_A_ENC, MOTOR2_B_ENC);
+//
+//Motor motor3(MOTOR6_A, MOTOR6_B, MOTOR6_A_ENC, MOTOR6_B_ENC);
 
-Motor motor3(MOTOR6_A, MOTOR6_B, MOTOR6_A_ENC, MOTOR6_B_ENC);
+Motor motor1;
+Motor motor2;
+Motor motor3;
 
 RPI_PICO_TimerInterrupt timer(0);
 
