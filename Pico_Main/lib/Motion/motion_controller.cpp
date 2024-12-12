@@ -5,6 +5,8 @@
 #include "encoder.h"
 #include "../I2C_Control/i2c_control.h"
 #include "pico/double.h"
+#include "quad_substep.h"
+#include "quadrature_substep_pio.pio.h"
 
 // Physical constants for the robot that detmine how the robot moves
 const float WHEEL_RADIUS = 0.0325; // meters
@@ -12,49 +14,71 @@ const float ROBOT_DIAMETER = 0.15; // meters
 const int ENCODER_COUNTS_PER_REV = 12 * 70;
 
 // PID values for each motor
-const float MOTOR1_KP = .12;
-const float MOTOR1_KI = .05;
-const float MOTOR1_KD = .3;
+const int M1_CALIBRATION[] = {0, 66, 126, 192};
+const float M1_KP = .12;
+const float M1_KI = .05;
+const float M1_KD = .3;
 
-const float MOTOR2_KP = .2;
-const float MOTOR2_KI = .1;
-const float MOTOR2_KD = .2;
+const int M2_CALIBRATION[] = {0, 45, 114, 190};
+const float M2_KP = .2;
+const float M2_KI = .1;
+const float M2_KD = .2;
 
-const float MOTOR3_KP = .2;
-const float MOTOR3_KI = .1;
-const float MOTOR3_KD = .2;
-
-
-
-//Motor motor1(MOTOR1_A, MOTOR1_B, MOTOR1_A_ENC, MOTOR1_B_ENC);
-//// PIO Sub-stepping quad encoder calibration 55, 124, 199
-//Motor motor2(MOTOR2_A, MOTOR2_B, MOTOR2_A_ENC, MOTOR2_B_ENC);
-//
-//Motor motor3(MOTOR6_A, MOTOR6_B, MOTOR6_A_ENC, MOTOR6_B_ENC);
+const int M3_CALIBRATION[] = {0, 54, 105, 198};
+const float M3_KP = .2;
+const float M3_KI = .1;
+const float M3_KD = .2;
 
 Motor motor1;
 Motor motor2;
 Motor motor3;
+
 
 RPI_PICO_TimerInterrupt timer(0);
 
 bool timerISR(struct repeating_timer *t);
 
 MotionController::MotionController() {
-
-    // Set PID values for each motor
-    motor1.setPIDVals(MOTOR1_KP, MOTOR1_KI, MOTOR1_KD);
-    motor2.setPIDVals(MOTOR2_KP, MOTOR2_KI, MOTOR2_KD);
-    motor3.setPIDVals(MOTOR3_KP, MOTOR3_KI, MOTOR3_KD);
-    // Initialize the encoder interrupt timer
-//    timer.attachInterruptInterval(TIMER_INTERVAL_MS * 1000, timerISR);
+#ifdef USE_ENCODER_INTERRUPTS
     // Set the GPIO pins to trigger the encoder interrupts using the interrupt
     // callback defined in encoder.cpp
-//    gpio_set_irq_enabled_with_callback(MOTOR1_A_ENC, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true, &gpio_callback);
-//    gpio_set_irq_callback(&gpio_callback);
-//    motor1.initIRQ();
-//    motor2.initIRQ();
-//    motor3.initIRQ();
+    gpio_set_irq_enabled_with_callback(MOTOR1_A_ENC, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true, &gpio_callback);
+    gpio_set_irq_callback(&gpio_callback);
+    motor1.initIRQ();
+    motor2.initIRQ();
+    motor3.initIRQ();
+#else
+// Initialize the motors
+    substep_state_t state1;
+    substep_state_t state2;
+    substep_state_t state3;
+    //Use PIO block 0
+    PIO pio = pio0;
+    //Add the pio program into the pio block
+    pio_add_program(pio, &quadrature_encoder_substep_program);
+    //Initialize the pio state machines to reduce the arguments needed for the initMotor function
+    state1.pio = pio;
+    state2.pio = pio;
+    state3.pio = pio;
+
+    // Initialize the motors
+    motor1.initMotor(MOTOR1_A, MOTOR1_B, MOTOR1_A_ENC, MOTOR1_B_ENC, &state1, M1_CALIBRATION);
+    motor2.initMotor(MOTOR2_A, MOTOR2_B, MOTOR2_A_ENC, MOTOR2_B_ENC, &state2, M2_CALIBRATION);
+    motor3.initMotor(MOTOR3_A, MOTOR3_B, MOTOR3_A_ENC, MOTOR3_B_ENC, &state3, M3_CALIBRATION);
+    //Claim the pio states so that the Neopixel uses the pio1 block
+    pio_claim_sm_mask(pio, 0b1111);
+
+#endif
+    // Set PID values for each motor
+    motor1.setPIDVals(M1_KP, M1_KI, M1_KD);
+    motor2.setPIDVals(M2_KP, M2_KI, M2_KD);
+    motor3.setPIDVals(M3_KP, M3_KI, M3_KD);
+
+
+    // Initialize the encoder interrupt timer
+    timer.attachInterruptInterval(TIMER_INTERVAL_MS * 1000, timerISR);
+
+
 }
 
 /**
@@ -92,7 +116,7 @@ void MotionController::setSpeed(float speed, float theta, float omega) {
     motor3.setTargetSpeed(encoderSpeed3);
 }
 
-inline float bytesToFloat(const uint8_t* bytes) {
+inline float bytesToFloat(const uint8_t *bytes) {
     float value;
     memcpy(&value, bytes, sizeof(value));
     return value;
@@ -133,7 +157,7 @@ void MotionController::debugMotorSpeeds() {
     int target2 = motor2.getTargetSpeed();
     int target3 = motor3.getTargetSpeed();
 
-    int speed1 = motor1.getEncoderSpeed() * 1000/TIMER_INTERVAL_MS;
+    int speed1 = motor1.getEncoderSpeed() * 1000 / TIMER_INTERVAL_MS;
 //    int speed2 = motor2.getEncoderSpeed() * 1000/TIMER_INTERVAL_MS;
 //    int speed3 = motor3.getEncoderSpeed() * 1000/TIMER_INTERVAL_MS;
     Serial.printf("Motor 1: Target: %i, Speed: %i, Encoder Speed: %i\n", target1, speed1, motor1.getEncoderSpeed());
@@ -162,11 +186,42 @@ void MotionController::runPIDUpdate() {
     motor3.updateSpeed();
 }
 
+/***
+ * @brief Runs the motor calibration code to determine the phase sizes of the motors
+ */
+void MotionController::runMotorCalibration() {
+    PIO pio = pio0;
+    uint sm = 0;
+    Serial.printf("Hello from quadrature encoder substep\n");
+    init_pwm();
+    Serial.println("PWM initialized");
+
+    Serial.printf("Calibrating\n");
+    Motor motorArray[] = {motor1, motor2, motor3};
+    for (int i = 0; i < 3; i++) {
+        substep_state_t state;
+        motorArray[i].setSpeed(2000);
+        // - wait for the motor to reach a reasonably stable speed
+        sleep_ms(2000);
+        // - run the phase size calibration code
+        substep_init_state(pio, i, motorArray[i].encoder_pin_A, &state);
+        substep_calibrate_phases(pio, sm);
+        Serial.printf("Calibrated\n");
+    }
+    // - stop the motor
+    set_pwm(0);
+}
+
 
 bool timerISR(struct repeating_timer *t) {
+
     (void) t;
+#ifdef USE_ENCODER_INTERRUPTS
     calcEncoderDelta(&motor1);
     calcEncoderDelta(&motor2);
     calcEncoderDelta(&motor3);
     return true;
+#else
+    return true;
+#endif
 }

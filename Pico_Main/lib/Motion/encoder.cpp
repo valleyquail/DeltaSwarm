@@ -8,7 +8,7 @@
 // class. Actuator motors will likely be a child class of the Motor class since
 // they will have additional functions
 
-
+#ifdef USE_ENCODER_INTERRUPTS
 
 void gpio_callback(uint gpio, uint32_t events) {
     (void) events;
@@ -95,3 +95,5 @@ void encoderInterruptB(void *motor_instance) {
     Serial.printf("Encoder count B for %i: %d\n", motor->encoder_pin_B, motor->curr_movement_encoder_count);
 #endif
 }
+
+#endif

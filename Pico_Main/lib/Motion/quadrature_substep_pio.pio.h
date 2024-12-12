@@ -4,6 +4,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if !PICO_NO_HARDWARE
 
 #include "hardware/pio.h"
@@ -154,3 +158,6 @@ static inline void quadrature_encoder_substep_get_counts(PIO pio, uint sm, uint 
 
 #endif
 
+#ifdef __cplusplus
+}
+#endif

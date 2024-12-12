@@ -1,7 +1,12 @@
+#ifndef MOTION_CONTROLLER_H
+#define MOTION_CONTROLLER_H
+
 #include <cstdio>
 #include <cstdlib>
 #include <Arduino.h>
 #include "motor.h"
+
+
 
 /**
  * @brief Class that hanbdles the motion of the robot. This only handles the
@@ -35,10 +40,11 @@ public:
     // Sets both PWM channels high so that the motors have some force to hold the robot in place
     static void brake();
     static int *getEncoderValues();
-
     void runPIDUpdate();
-
+    static void runMotorCalibration();
 
 };
 
 extern MotionController motionController;
+
+#endif

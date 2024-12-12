@@ -32,7 +32,7 @@
 // attached to a DC motor (and calibrate phase sizes)
 
 const int dir_pin = 5;
-const int pwm_pin = 9;
+const int pwm_pin = 0;
 
 void set_pwm(float value) {
     int ivalue = value * 6250;
