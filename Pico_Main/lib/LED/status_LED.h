@@ -12,7 +12,9 @@ private:
     Adafruit_NeoPixel pixel;
 
 public:
-    StatusLED(uint8_t pin);
+    StatusLED();
+
+    void init(uint8_t pin);
     // Red
     void SetError();
     // Yellow
@@ -29,6 +31,6 @@ public:
     void inspectPIOBlock();
 };
 
-extern StatusLED *statusLED;
+extern StatusLED statusLED;
 
 #endif

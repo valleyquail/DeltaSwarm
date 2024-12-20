@@ -325,57 +325,58 @@ void substep_set_calibration_data(substep_state_t *state, int step0, int step1, 
     state->calibration_data[3] = step2;
 }
 
-//
-//
-//int main(void)
-//{
-//    substep_state_t state;
-//
-//    // base pin to connect the A phase of the encoder. the B phase must be
-//    // connected to the next pin
-//    uint PIN_A = 20;
-//
-//    stdio_init_all();
-//    printf("Hello from quadrature encoder substep\n");
-//
-//    PIO pio = pio0;
-//    uint sm = 0;
-//
-//    pio_add_program(pio, &quadrature_encoder_substep_program);
-//    substep_init_state(pio, sm, PIN_A, &state);
-//
-//    // example calibration code, uncomment to calibrate the encoder:
-//
-//    // - turn on a DC motor at 50% PWM
-//    init_pwm();
-//    set_pwm(0.9);
-//    // - wait for the motor to reach a reasonably stable speed
-//    sleep_ms(2000);
-//    // - run the phase size calibration code
-//    substep_calibrate_phases(pio, sm);
-//    // - stop the motor
-//    set_pwm(0);
-//
-//    // replace this with the output of the calibration function
-//    substep_set_calibration_data(&state, 64, 128, 192);
-//
-//    uint last_position = 0;
-//    int last_speed = 0;
-//    uint last_raw_step = 0;
-//    while (1) {
-//
-//        // read the PIO and update the state data
-//        substep_update(&state);
-//
-//        if (last_position != state.position || last_speed != state.speed || last_raw_step != state.raw_step) {
-//            // print out the result
-//            printf("pos: %-10d  speed: %-10d  raw_steps: %-10d\n", state.position, state.speed, state.raw_step);
-//            last_position = state.position;
-//            last_speed = state.speed;
-//            last_raw_step = state.raw_step;
-//        }
-//
-//        // run at roughly 100Hz
-//        sleep_ms(10);
-//    }
-//}
+
+/*
+int main(void)
+{
+    substep_state_t state;
+
+    // base pin to connect the A phase of the encoder. the B phase must be
+    // connected to the next pin
+    uint PIN_A = 20;
+
+    stdio_init_all();
+    printf("Hello from quadrature encoder substep\n");
+
+    PIO pio = pio0;
+    uint sm = 0;
+
+    pio_add_program(pio, &quadrature_encoder_substep_program);
+    substep_init_state(pio, sm, PIN_A, &state);
+
+    // example calibration code, uncomment to calibrate the encoder:
+
+    // - turn on a DC motor at 50% PWM
+    init_pwm();
+    set_pwm(0.9);
+    // - wait for the motor to reach a reasonably stable speed
+    sleep_ms(2000);
+    // - run the phase size calibration code
+    substep_calibrate_phases(pio, sm);
+    // - stop the motor
+    set_pwm(0);
+
+    // replace this with the output of the calibration function
+    substep_set_calibration_data(&state, 64, 128, 192);
+
+    uint last_position = 0;
+    int last_speed = 0;
+    uint last_raw_step = 0;
+    while (1) {
+
+        // read the PIO and update the state data
+        substep_update(&state);
+
+        if (last_position != state.position || last_speed != state.speed || last_raw_step != state.raw_step) {
+            // print out the result
+            printf("pos: %-10d  speed: %-10d  raw_steps: %-10d\n", state.position, state.speed, state.raw_step);
+            last_position = state.position;
+            last_speed = state.speed;
+            last_raw_step = state.raw_step;
+        }
+
+        // run at roughly 100Hz
+        sleep_ms(10);
+    }
+}
+*/

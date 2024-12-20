@@ -1,10 +1,13 @@
 #include "status_LED.h"
 
 
-StatusLED::StatusLED(uint8_t pin) {
-    this->pixel = Adafruit_NeoPixel(NUMPIXELS, pin, NEO_GRB + NEO_KHZ800);
-    this->pixel.begin();
+StatusLED::StatusLED() {
+
 }
+
+void StatusLED::init(uint8_t pin) {
+    this->pixel = Adafruit_NeoPixel(NUMPIXELS, pin, NEO_GRB + NEO_KHZ800);
+    this->pixel.begin();}
 
 // Set the LED to red
 void StatusLED::SetError() {

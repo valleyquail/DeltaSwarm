@@ -9,6 +9,7 @@
 // Callback function for testing the I2C communication
 // Needs to exist purely to facilitate assigning a data length
 void testCallback(int8_t packet_index) {
+    (void) packet_index;
 }
 
 void motionCallback(int8_t packet_index) {

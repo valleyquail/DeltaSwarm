@@ -3,7 +3,6 @@
 //
 #include <Arduino.h>
 #include <Wire.h>
-#include "pico_wire_periph.h"
 #include "../../include/config.h"
 #include "i2c_control.h"
 

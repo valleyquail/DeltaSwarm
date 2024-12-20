@@ -12,6 +12,29 @@
 const float WHEEL_RADIUS = 0.0325; // meters
 const float ROBOT_DIAMETER = 0.15; // meters
 const int ENCODER_COUNTS_PER_REV = 12 * 70;
+//Based on the quadrature encoder substep program, the number of substeps per revolution is 256
+constexpr int substeps_per_rev = 256;
+
+
+#ifdef USE_ENCODER_INTERRUPTS
+// PID values for each motor
+
+const float M1_KP = .12;
+const float M1_KI = .05;
+const float M1_KD = .3;
+
+const float M2_KP = .2;
+const float M2_KI = .1;
+const float M2_KD = .2;
+
+const float M3_KP = .2;
+const float M3_KI = .1;
+const float M3_KD = .2;
+
+Motor motor1(MOTOR1_A, MOTOR1_B, MOTOR1_A_ENC, MOTOR1_B_ENC);
+Motor motor2(MOTOR2_A, MOTOR2_B, MOTOR2_A_ENC, MOTOR2_B_ENC);
+Motor motor3(MOTOR3_A, MOTOR3_B, MOTOR3_A_ENC, MOTOR3_B_ENC);
+#else
 
 // PID values for each motor
 const int M1_CALIBRATION[] = {0, 66, 126, 192};
@@ -28,17 +51,23 @@ const int M3_CALIBRATION[] = {0, 54, 105, 198};
 const float M3_KP = .2;
 const float M3_KI = .1;
 const float M3_KD = .2;
-
 Motor motor1;
 Motor motor2;
 Motor motor3;
-
+substep_state_t state1;
+substep_state_t state2;
+substep_state_t state3;
+#endif
 
 RPI_PICO_TimerInterrupt timer(0);
 
 bool timerISR(struct repeating_timer *t);
 
-MotionController::MotionController() {
+bool newEncoderValues = false;
+
+MotionController::MotionController() {};
+
+void MotionController::initMotionController(){
 #ifdef USE_ENCODER_INTERRUPTS
     // Set the GPIO pins to trigger the encoder interrupts using the interrupt
     // callback defined in encoder.cpp
@@ -49,9 +78,6 @@ MotionController::MotionController() {
     motor3.initIRQ();
 #else
 // Initialize the motors
-    substep_state_t state1;
-    substep_state_t state2;
-    substep_state_t state3;
     //Use PIO block 0
     PIO pio = pio0;
     //Add the pio program into the pio block
@@ -77,8 +103,6 @@ MotionController::MotionController() {
 
     // Initialize the encoder interrupt timer
     timer.attachInterruptInterval(TIMER_INTERVAL_MS * 1000, timerISR);
-
-
 }
 
 /**
@@ -87,8 +111,11 @@ MotionController::MotionController() {
  * @return encoder counts per second
  */
 inline int speedToEncoder(float speed) {
-
-    return (int) (speed * ENCODER_COUNTS_PER_REV / (2 * PI * WHEEL_RADIUS));
+    int enc_speed = (int) (speed * ENCODER_COUNTS_PER_REV / (2 * PI * WHEEL_RADIUS));
+#ifndef USE_ENCODER_INTERRUPTS
+    enc_speed *= 256
+#endif
+    return enc_speed;
 }
 
 // TODO: Implement a keep orientation option so that it either arcs or it rotates
@@ -124,9 +151,9 @@ inline float bytesToFloat(const uint8_t *bytes) {
 
 void MotionController::setSpeedFromI2C(const uint8_t *speeds) {
     // Bit shift the speeds to get the float values
-    auto speed = bytesToFloat(&speeds[0]);
-    auto theta = bytesToFloat(&speeds[4]);
-    auto omega = bytesToFloat(&speeds[8]);
+    float speed = bytesToFloat(&speeds[0]);
+    float theta = bytesToFloat(&speeds[4]);
+    float omega = bytesToFloat(&speeds[8]);
     // Get a boolean value for if the robot should keep its orientation
     bool orientation = speeds[16] & 0x01;
 #ifdef SPEEDS_DEBUG
@@ -178,12 +205,23 @@ int *MotionController::getEncoderValues() {
 }
 
 void MotionController::runPIDUpdate() {
+    // If there are no new encoder values, then don't run the PID update
+    if (!newEncoderValues) {
+        return;
+    }
 #ifdef DEBUG
     Serial.printf("Running PID update\n");
 #endif
+    // Update the speed of each motor and disable interrupts while updating the speed
+    // so that the timer ISR doesn't overwrite the speed
+    uint32_t status = save_and_disable_interrupts();
+
     motor1.updateSpeed();
     motor2.updateSpeed();
     motor3.updateSpeed();
+
+    restore_interrupts(status);
+    newEncoderValues = false;
 }
 
 /***
@@ -193,28 +231,27 @@ void MotionController::runMotorCalibration() {
     PIO pio = pio0;
     uint sm = 0;
     Serial.printf("Hello from quadrature encoder substep\n");
-    init_pwm();
-    Serial.println("PWM initialized");
+
 
     Serial.printf("Calibrating\n");
     Motor motorArray[] = {motor1, motor2, motor3};
     for (int i = 0; i < 3; i++) {
         substep_state_t state;
-        motorArray[i].setSpeed(2000);
+
+        motorArray[i].setSpeed(2000); // 2000 encoder counts per second
         // - wait for the motor to reach a reasonably stable speed
         sleep_ms(2000);
         // - run the phase size calibration code
         substep_init_state(pio, i, motorArray[i].encoder_pin_A, &state);
         substep_calibrate_phases(pio, sm);
         Serial.printf("Calibrated\n");
+        motorArray[i].setSpeed(0);
     }
-    // - stop the motor
-    set_pwm(0);
+    Serial.println("All motors are calibrated");
 }
 
 
 bool timerISR(struct repeating_timer *t) {
-
     (void) t;
 #ifdef USE_ENCODER_INTERRUPTS
     calcEncoderDelta(&motor1);
@@ -222,6 +259,10 @@ bool timerISR(struct repeating_timer *t) {
     calcEncoderDelta(&motor3);
     return true;
 #else
-    return true;
+    substep_update(&state1);
+    substep_update(&state2);
+    substep_update(&state3);
 #endif
+    newEncoderValues = true;
+    return true;
 }

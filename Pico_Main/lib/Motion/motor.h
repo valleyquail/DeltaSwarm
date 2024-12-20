@@ -1,14 +1,14 @@
-#include <stdio.h>
-#include <stdlib.h>
+#ifndef MOTOR_H
+#define MOTOR_H
+
+
+#include <cstdio>
+#include <cstdlib>
 #include <Arduino.h>
 #include "pico/stdlib.h"
 #include "RP2040_PWM.h"
 #include "quad_substep.h"
 #include "motion_controller.h"
-
-#ifndef __MOTOR_H__
-#define __MOTOR_H__
-
 // Deadband for the motor PWM
 #define DEADBAND_END 60
 
@@ -20,11 +20,12 @@
 // static friction within the motor that makes it difficult to move small amounts
 class Motor {
     friend class MotionController;
+
 private:
 #ifndef USE_ENCODER_INTERRUPTS
 
 //PIO variables: DO NOT TOUCH
-    substep_state_t *enc_state;
+    substep_state_t *state;
 #endif
 
 protected:
@@ -32,7 +33,7 @@ protected:
     const float PWM_FREQ = 20000.;
 
     // True if it is a new target speed
-    volatile bool isNewSpeed = true;
+    bool isNewSpeed = true;
     // PWM pin A and B, and encoder pin A and B for controlling the motor and
     // getting encoder counts
     uint8_t pwm_pin_A;
@@ -48,8 +49,8 @@ protected:
     // Resets everytime there is a new movement
 
     // keeps track of encoder changes
-    volatile int prevCount = 0;
-    volatile int curr_movement_encoder_count = 0;
+    int prevCount = 0;
+    int curr_movement_encoder_count = 0;
 
     // PID control variables
     float kp;
@@ -57,7 +58,6 @@ protected:
     float kd;
 
     // Encoder count within the timer interval
-    // TODO Determine the timer interval
     volatile int encoderSpeed = 0;
 
     // Keep track of target speed in terms of encoder ticks per timer interval
@@ -74,12 +74,16 @@ protected:
 public:
 #ifdef USE_ENCODER_INTERRUPTS
     Motor(uint8_t pwm_in_A, uint8_t pwm_in_B, uint8_t encoder_pin_A, uint8_t encoder_pin_B);
-
     void initIRQ();
 #else
+
     Motor();
-    void initMotor(uint8_t pwm_in_A, uint8_t pwm_in_B, uint8_t encoder_pin_A, uint8_t encoder_pin_B, substep_state_t *state, const int* calibration_array);
+
+    void initMotor(uint8_t pwm_A, uint8_t pwm_B, uint8_t encoder_A, uint8_t encoder_B, substep_state_t *state,
+                   const int *calibration_array);
+
 #endif
+
     void setPIDVals(float kp, float ki, float kd);
 
     void updateSpeed();
@@ -100,10 +104,19 @@ public:
     [[nodiscard]] int getCurrEncoderCount() const;
 
     /**
-     * @brief Get the Encoder Speed object
+     * @brief Get the recored encoder speed of the motor if using encoder interrupts. Otherwise, it uses the substep
+     * speed calculated by the PIO program
      * @return the encoder delta in the timer interval
      */
     [[nodiscard]] int getEncoderSpeed() const;
+
+    /**
+     * @brief Get the Target Speed object
+     * @return the target speed of the motor in encoder counts per timer interval
+     */
+    [[nodiscard]] int getTargetSpeed() const;
+
+#ifdef USE_ENCODER_INTERRUPTS
     /**
      * @brief Calculate the change in encoder count since the last measurement
      * Used to calculate the speed of the motor in terms of encoder counts. It
@@ -121,8 +134,7 @@ public:
 
     friend void encoderInterruptB(void *motor_instance);
 
-    [[nodiscard]] int getTargetSpeed() const;
-
+#endif
 };
 
 extern Motor motor1;

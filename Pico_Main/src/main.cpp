@@ -13,7 +13,7 @@
 
 
 MotionController motionController = MotionController();
-StatusLED *statusLED;
+StatusLED statusLED = StatusLED();
 
 void setup() {
 
@@ -24,30 +24,18 @@ void setup() {
         Serial.printf("Launching in %i ms\n", (100 - i) * interval);
         sleep_ms(interval);
     }
-    int PIN_A = MOTOR6_A_ENC;
-    delay(1000);
-
-    substep_state_t state;
-    PIO pio = pio0;
-    int sm = 0;
-    //Set all of pio0 state machines to be enables
-
-    pio_add_program(pio, &quadrature_encoder_substep_program);
-
-    Serial.printf("here\n");
-
-    Serial.printf("State machines on pio0: %i\n", pio_claim_unused_sm(pio, false));
-    statusLED = (new StatusLED(NEOPIXEL_PIN));
+    motionController.initMotionController();
+    statusLED.init(NEOPIXEL_PIN);
     Serial.println("Status LED initialized");
 
-    statusLED->SetError();
+    statusLED.SetError();
     delay(1000);
 
 //    Serial.printf("I2C from ESP\n");
-//    register_i2c_function(reinterpret_cast<i2c_response_t>(&motionCallback), PICO_MOTOR_COMMAND_REGISTER,
-//                          MOTOR_COMMAND_SIZE);
-//    register_i2c_function(reinterpret_cast<i2c_response_t>(&testCallback), TEST_CONNECTION_REGISTER,
-//                          TEST_CONNECTION_SIZE);
+    register_i2c_function(reinterpret_cast<i2c_response_t>(&motionCallback), PICO_MOTOR_COMMAND_REGISTER,
+                          MOTOR_COMMAND_SIZE);
+    register_i2c_function(reinterpret_cast<i2c_response_t>(&testCallback), TEST_CONNECTION_REGISTER,
+                          TEST_CONNECTION_SIZE);
 
 //    initPicoPeriph();
 //    initPicoController();
@@ -55,7 +43,7 @@ void setup() {
 //    config_icm42688();
 //    config_lis3mdl();
     Serial.printf("Testing?\n");
-    statusLED->SetOK();
+    statusLED.SetOK();
 
 
 }
@@ -69,8 +57,8 @@ void loop() {
 //    delay(1000);
 //    unsigned long currTime = millis();
 //    for (int i = 0; i < 100; i++) {
-//        motionController.runPIDUpdate();
-//        motionController.debugMotorSpeeds();
+        motionController.runPIDUpdate();
+        motionController.debugMotorSpeeds();
 //        delay(10);
 //    }
 //    Serial.printf("Time taken: %lu\n", millis() - currTime);

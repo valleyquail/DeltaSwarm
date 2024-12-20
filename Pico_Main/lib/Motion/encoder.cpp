@@ -1,7 +1,3 @@
-#include "motor.h"
-#include <Arduino.h>
-#include "../../include/config.h"
-#include "pico/stdlib.h"
 
 // Motors are defined in the motion_controller.cpp file for the drive motors
 // the other motors will be defined later in what will likely be an actuator
@@ -9,6 +5,11 @@
 // they will have additional functions
 
 #ifdef USE_ENCODER_INTERRUPTS
+
+#include "motor.h"
+#include <Arduino.h>
+#include "../../include/config.h"
+#include "pico/stdlib.h"
 
 void gpio_callback(uint gpio, uint32_t events) {
     (void) events;

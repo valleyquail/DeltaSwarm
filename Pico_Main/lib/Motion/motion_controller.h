@@ -17,6 +17,7 @@ class MotionController
 {
 public:
     MotionController();
+    void initMotionController();
 
     /**
      * @brief Sets the speed of the robot
@@ -28,21 +29,35 @@ public:
     static void setSpeed(float speed, float theta, float omega);
 
     /**
-     * @brief Set the Speed object
+     * @brief Set the robot's speed after processing the I2C message
      *
      * @param speeds array from the I2C interrupt that contains the speeds for each motor
      */
     static void setSpeedFromI2C(const uint8_t *speeds);
-//    static void setM1PWM(int speed);
-    // Stops the robot and sets the motors to idle
-    static void stop();
-    void debugMotorSpeeds();
-    // Sets both PWM channels high so that the motors have some force to hold the robot in place
-    static void brake();
-    static int *getEncoderValues();
+
+    /**
+     * @brief Updates the speed of the motors using the PID control
+     */
     void runPIDUpdate();
+
+    /**
+     * @brief Stops the robot and motors are in a passive state
+     */
+    static void stop();
+
+
+    /**
+     * @brief Sets both PWM channels high so that the motors have holding force
+     */
+    static void brake();
+
+    static int *getEncoderValues();
+
     static void runMotorCalibration();
 
+
+
+    void debugMotorSpeeds();
 };
 
 extern MotionController motionController;

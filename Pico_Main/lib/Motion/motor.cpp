@@ -38,29 +38,31 @@ Motor::Motor(uint8_t pwmPinA, uint8_t pwmPinB, uint8_t encoderPinA, uint8_t enco
 #else
 
 Motor::Motor() {
-    // Default constructor
+    // Default constructor for the motor to initialize the motor without the encoder interrupts
 }
 
-void Motor::initMotor(uint8_t pwmPinA, uint8_t pwmPinB, uint8_t encoderPinA, uint8_t encoderPinB, substep_state_t *state,
-            const int *calibration_array) {
+void Motor::initMotor(uint8_t pwmPinA, uint8_t pwmPinB, uint8_t encoderPinA, uint8_t encoderPinB,
+                      substep_state_t *encoder_state,
+                      const int *calibration_array) {
     pwm_pin_A = pwmPinA;
     pwm_pin_B = pwmPinB;
     encoder_pin_A = encoderPinA;
     encoder_pin_B = encoderPinB;
-    this->pwmA = new RP2040_PWM(pwm_pin_A, PWM_FREQ, 0);
-    this->pwmB = new RP2040_PWM(pwm_pin_B, PWM_FREQ, 0);
-    uint16_t PWM_TOP_A = this->pwmA->get_TOP();
-    uint16_t PWM_DIV_A = this->pwmA->get_DIV();
-    uint16_t PWM_TOP_B = this->pwmB->get_TOP();
-    uint16_t PWM_DIV_B = this->pwmB->get_DIV();
+    pwmA = new RP2040_PWM(pwm_pin_A, PWM_FREQ, 0);
+    pwmB = new RP2040_PWM(pwm_pin_B, PWM_FREQ, 0);
+    uint16_t PWM_TOP_A = pwmA->get_TOP();
+    uint16_t PWM_DIV_A = pwmA->get_DIV();
+    uint16_t PWM_TOP_B = pwmB->get_TOP();
+    uint16_t PWM_DIV_B = pwmB->get_DIV();
     uint16_t PWM_Level = 0;
 
     // setPWM_manual(uint8_t pin, uint16_t top, uint8_t div, uint16_t level, bool phaseCorrect = false)
-    this->pwmA->setPWM_manual(pwmPinA, PWM_TOP_A, PWM_DIV_A, PWM_Level, true);
-    this->pwmB->setPWM_manual(pwmPinB, PWM_TOP_B, PWM_DIV_B, PWM_Level, true);
+    pwmA->setPWM_manual(pwmPinA, PWM_TOP_A, PWM_DIV_A, PWM_Level, true);
+    pwmB->setPWM_manual(pwmPinB, PWM_TOP_B, PWM_DIV_B, PWM_Level, true);
 
-    this->enc_state = state;
-    substep_init_state(enc_state->pio, enc_state->sm, encoder_pin_A, state);
+    state = encoder_state;
+    substep_init_state(state->pio, state->sm, encoder_pin_A, state);
+    substep_set_calibration_data(state, calibration_array[0], calibration_array[1], calibration_array[2]);
 }
 
 #endif
@@ -84,7 +86,6 @@ void Motor::setTargetSpeed(int speed) {
     Serial.printf("New speed set: %i\n", speed);
     Serial.printf("Total encoder count: %ld\n", total_encoder_count);
 #endif
-    isNewSpeed = false;
 }
 
 float DC_zero = 0;
@@ -126,15 +127,19 @@ void Motor::brake() {
 #endif
 }
 
-
-
-
 // PID Control function
 void Motor::updateSpeed() {
     int error, dError, output;
+    // If the target speed is 0, don't run the PID control
+    // Also, if it is a new speed, skip the function once so that there is a single loop of the
+    // PID update for the motor to attempt to get up to speed
     if (target_speed == 0 || isNewSpeed) {
+        isNewSpeed = false;
         return;
     }
+#ifndef USE_ENCODER_INTERRUPTS
+    encoderSpeed = state->speed;
+#endif
     // Calculate the error
     // Also adapt the error to be in the timer interval
     error = target_speed - encoderSpeed * 1000 / (TIMER_INTERVAL_MS);
@@ -148,11 +153,8 @@ void Motor::updateSpeed() {
     // Set the PWM
     setSpeed(output);
 
-#ifndef PID_DEBUG
-#define PID_DEBUG 1
-#endif
 
-#if defined(PID_DEBUG)
+#ifdef PID_DEBUG
     Serial.printf("Motor on pins: %d %d\n", pwm_pin_A, pwm_pin_B);
     Serial.printf("PID Speed: %i\n", output);
     Serial.printf("Raw Error: %i;Sum %i; dError %i\n", error, sumError, dError);
@@ -169,7 +171,11 @@ int Motor::getCurrEncoderCount() const {
 }
 
 int Motor::getEncoderSpeed() const {
+#ifdef USE_ENCODER_INTERRUPTS
     return encoderSpeed;
+#else
+    return state->speed;
+#endif
 }
 
 int Motor::getTargetSpeed() const {

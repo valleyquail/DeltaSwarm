@@ -37,11 +37,6 @@ typedef struct substep_state_t {
 } substep_state_t;
 
 
-void init_pwm(void);
-
-void set_pwm(float value);
-
-
 void substep_init_state(PIO pio, int sm, int pin_a, substep_state_t *state);
 
 void substep_update(substep_state_t *state);
