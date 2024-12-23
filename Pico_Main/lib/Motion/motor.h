@@ -10,7 +10,7 @@
 #include "quad_substep.h"
 #include "motion_controller.h"
 // Deadband for the motor PWM
-#define DEADBAND_END 60
+
 
 
 // TODO: Maybe make a child class for drive motors vs actuator motors so that
@@ -49,7 +49,7 @@ protected:
     // Resets everytime there is a new movement
 
     // keeps track of encoder changes
-    int prevCount = 0;
+    int prev_count = 0;
     int curr_movement_encoder_count = 0;
 
     // PID control variables
@@ -58,18 +58,20 @@ protected:
     float kd;
 
     // Encoder count within the timer interval
-    volatile int encoderSpeed = 0;
+    volatile int encoder_speed = 0;
 
     // Keep track of target speed in terms of encoder ticks per timer interval
     int target_speed = 0;
     // Integral control
-    int sumError = 0;
+    int sum_error = 0;
     // Derivative control
-    int lastError = 0;
+    int last_error = 0;
+    int prev_dError = 0;
+    float last_pid_output = 0;
     // Max error for integral control to prevent windup
-    const int maxError = 10000;
+    const int max_error = 40000;
 
-    void setSpeed(int speed);
+    void setSpeed(float speed);
 
 public:
 #ifdef USE_ENCODER_INTERRUPTS
@@ -92,7 +94,7 @@ public:
      * @brief Sets a new speed for the motor as compared to using PID to match the
      * desired speed
      *
-     * @param speed
+     * @param speed the speed of the motor in encoder counts per timer interval
      */
     void setTargetSpeed(int speed);
 
@@ -133,7 +135,8 @@ public:
     friend void encoderInterruptA(void *motor_instance);
 
     friend void encoderInterruptB(void *motor_instance);
-
+#else
+    friend void setPrevSubsteps(void *motor_instance);
 #endif
 };
 

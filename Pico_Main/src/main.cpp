@@ -24,6 +24,46 @@ void setup() {
         Serial.printf("Launching in %i ms\n", (100 - i) * interval);
         sleep_ms(interval);
     }
+    /*substep_state_t state;
+
+    // base pin to connect the A phase of the encoder. the B phase must be
+    // connected to the next pin
+    uint PIN_A = 20;
+
+
+    Serial.printf("Hello from quadrature encoder substep\n");
+
+    PIO pio = pio0;
+    uint sm = 0;
+
+    pio_add_program(pio, &quadrature_encoder_substep_program);
+    substep_init_state(pio, sm, MOTOR1_A_ENC, &state);
+
+
+
+    // replace this with the output of the calibration function
+    substep_set_calibration_data(&state, 64, 128, 192);
+
+    uint last_position = 0;
+    int last_speed = 0;
+    uint last_raw_step = 0;
+    while (1) {
+
+        // read the PIO and update the state data
+        substep_update(&state);
+
+        if (last_position != state.position || last_speed != state.speed || last_raw_step != state.raw_step) {
+            // print out the result
+            Serial.printf("pos: %-10d  speed: %-10d  raw_steps: %-10d\n", state.position, state.speed, state.raw_step);
+            last_position = state.position;
+            last_speed = state.speed;
+            last_raw_step = state.raw_step;
+        }
+        // run at roughly 100Hz
+        sleep_ms(10);
+    }
+*/
+
     motionController.initMotionController();
     statusLED.init(NEOPIXEL_PIN);
     Serial.println("Status LED initialized");
@@ -51,16 +91,26 @@ void setup() {
 void loop() {
 
 //    read_sensors();
-    delay(1000);
+//    delay(50);
     Serial.printf("Looping\n");
 //    bus_scan();
 //    delay(1000);
 //    unsigned long currTime = millis();
-//    for (int i = 0; i < 100; i++) {
-        motionController.runPIDUpdate();
-        motionController.debugMotorSpeeds();
-//        delay(10);
-//    }
+    int top = 50;
+    int looper = top;
+    float theta = 0.01;
+    MotionController::setSpeed(theta, PI/2, 0);
+    while (theta < 0.1) {
+        if (looper == 0) {
+            MotionController::setSpeed(theta, PI/2, 0);
+            theta += 0.01;
+            looper = top;
+        }
+
+        MotionController::runPIDUpdate();
+        delay(50);
+        looper--;
+    }
 //    Serial.printf("Time taken: %lu\n", millis() - currTime);
 
 }

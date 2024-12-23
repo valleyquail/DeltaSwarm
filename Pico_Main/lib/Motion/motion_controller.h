@@ -38,7 +38,7 @@ public:
     /**
      * @brief Updates the speed of the motors using the PID control
      */
-    void runPIDUpdate();
+    static void runPIDUpdate();
 
     /**
      * @brief Stops the robot and motors are in a passive state

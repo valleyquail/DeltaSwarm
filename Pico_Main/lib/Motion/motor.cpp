@@ -6,6 +6,7 @@
 #include "hardware/gpio.h"
 #include "quad_substep.h"
 
+constexpr int DEADBAND_END = 40;
 #ifdef USE_ENCODER_INTERRUPTS
 Motor::Motor(uint8_t pwmPinA, uint8_t pwmPinB, uint8_t encoderPinA, uint8_t encoderPinB) {
     // Pin definitions
@@ -27,15 +28,17 @@ Motor::Motor(uint8_t pwmPinA, uint8_t pwmPinB, uint8_t encoderPinA, uint8_t enco
     this->pwmB->setPWM_manual(pwmPinB, PWM_TOP_B, PWM_DIV_B, PWM_Level, true);
 }
 
-//void Motor::initIRQ(){
-//    gpio_init(encoder_pin_A);
-//    gpio_init(encoder_pin_B);
-//    gpio_set_dir(encoder_pin_A, GPIO_IN);
-//    gpio_set_dir(encoder_pin_B, GPIO_IN);
-//    gpio_set_irq_enabled(encoder_pin_A, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true);
-//    gpio_set_irq_enabled(encoder_pin_B, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true);
-//}
+void Motor::initIRQ(){
+    gpio_init(encoder_pin_A);
+    gpio_init(encoder_pin_B);
+    gpio_set_dir(encoder_pin_A, GPIO_IN);
+    gpio_set_dir(encoder_pin_B, GPIO_IN);
+    gpio_set_irq_enabled(encoder_pin_A, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true);
+    gpio_set_irq_enabled(encoder_pin_B, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true);
+}
 #else
+
+constexpr int substeps_per_rev = 256;
 
 Motor::Motor() {
     // Default constructor for the motor to initialize the motor without the encoder interrupts
@@ -68,20 +71,34 @@ void Motor::initMotor(uint8_t pwmPinA, uint8_t pwmPinB, uint8_t encoderPinA, uin
 #endif
 
 void Motor::setPIDVals(float kp, float ki, float kd) {
+#ifndef USE_ENCODER_INTERRUPTS
+//divide by the substeps per step since the encoder speed is much larger now
+    kp /= substeps_per_rev;
+    ki /= substeps_per_rev;
+    kd /= substeps_per_rev;
+#endif
     this->kp = kp;
     this->ki = ki;
     this->kd = kd;
 }
 
 void Motor::setTargetSpeed(int speed) {
+#ifndef USE_ENCODER_INTERRUPTS
+    // Convert the encoder speed to now be in terms of substeps per timer interval
+    speed *= substeps_per_rev;
+    prev_count = (int) state->position;
+#else
+    prev_count = 0;
+#endif
     // If there is a new speed sent, update how the encoder values are being kept
     isNewSpeed = true;
     total_encoder_count += curr_movement_encoder_count;
+
     curr_movement_encoder_count = 0;
-    sumError = 0;
-    lastError = 0;
+    sum_error = 0;
+    last_error = 0;
     target_speed = speed;
-    setSpeed(speed);
+    setSpeed((float)speed);
 #ifdef ENCODER_DEBUG
     Serial.printf("New speed set: %i\n", speed);
     Serial.printf("Total encoder count: %ld\n", total_encoder_count);
@@ -90,8 +107,10 @@ void Motor::setTargetSpeed(int speed) {
 
 float DC_zero = 0;
 
-void Motor::setSpeed(int speed) {
-    auto duty_cycle_percent = (float) abs(speed);
+void Motor::setSpeed(float speed) {
+    //TODO: Approximate the duty cycle percentage based on the encoder speed
+
+    float duty_cycle_percent =  abs(speed);
     // If the speed is 0, stop the motor
     if (speed == 0) {
         pwmA->setPWM_DCPercentage_manual(pwm_pin_A, DC_zero);
@@ -114,7 +133,7 @@ void Motor::setSpeed(int speed) {
 #endif
     }
 #ifdef SPEED_DEBUG
-    Serial.printf("Duty cycle set: %i\n", speed);
+    Serial.printf("Duty cycle set: %f\n", speed);
 #endif
 }
 
@@ -127,43 +146,57 @@ void Motor::brake() {
 #endif
 }
 
+constexpr float alpha2 = 0.7;
 // PID Control function
 void Motor::updateSpeed() {
-    int error, dError, output;
+    int error, dError;
+    float output;
     // If the target speed is 0, don't run the PID control
-    // Also, if it is a new speed, skip the function once so that there is a single loop of the
-    // PID update for the motor to attempt to get up to speed
-    if (target_speed == 0 || isNewSpeed) {
-        isNewSpeed = false;
+    if (target_speed == 0) {
+        Serial.printf("zero\n");
         return;
     }
-#ifndef USE_ENCODER_INTERRUPTS
-    encoderSpeed = state->speed;
+#ifdef USE_ENCODER_INTERRUPTS
+    error = target_speed - encoder_speed * 1000 / (TIMER_INTERVAL_MS);
+#else
+    // Get the encoder speed in terms of substeps per timer interval
+    // PIO program substep counts are reversed
+    encoder_speed = -state->speed;
+    error = target_speed - encoder_speed;
 #endif
     // Calculate the error
     // Also adapt the error to be in the timer interval
-    error = target_speed - encoderSpeed * 1000 / (TIMER_INTERVAL_MS);
-    // Calculate the integral
-    sumError += error;
-    constrain(sumError, -maxError, maxError);
-    // Calculate the derivative
-    dError = error - lastError;
-    // Calculate the output
-    output = constrain((int) (kp * error + ki * sumError + kd * dError), -100, 100);
-    // Set the PWM
-    setSpeed(output);
 
+    // Calculate the integral
+    sum_error += error;
+    if (target_speed > 0)
+        sum_error = constrain(sum_error, 0, max_error);
+    else
+        sum_error = constrain(sum_error, -max_error, 0);
+    // Calculate the derivative
+    dError = error - last_error;
+    dError = dError * (1.f - 0.1f) + prev_dError * 0.1f;  // Exponential smoothing
+//    prev_dError = dError;
+    // Calculate the output
+    output = kp * error + ki * sum_error + kd * dError;
+    if (target_speed > 0)
+        output = constrain(output, DEADBAND_END, 100);
+    else
+        output = constrain(output, -100, -DEADBAND_END);
+    // Set the PWM
+    output = (alpha2 * last_pid_output) + ((1-alpha2) * output);
+    setSpeed(output);
+    last_pid_output = output;
+    // Update the last error
+    last_error = error;
 
 #ifdef PID_DEBUG
-    Serial.printf("Motor on pins: %d %d\n", pwm_pin_A, pwm_pin_B);
-    Serial.printf("PID Speed: %i\n", output);
-    Serial.printf("Raw Error: %i;Sum %i; dError %i\n", error, sumError, dError);
-    Serial.printf("PID Error: %f;Sum %f; dError %f\n\n", error * kp, sumError * ki, dError * kd);
-    //    Serial.printf("Current encoder counts: %i\n\n", curr_movemen
-    //    t_encoder_count);
+    Serial.printf("Motor on pin: %d\n", pwm_pin_A);
+    Serial.printf("Speed: %i, Target: %i\n", encoder_speed, target_speed);
+    Serial.printf("Raw Error: %i;Sum %i; dError %i\n", error, sum_error, dError);
+    Serial.printf("PID Output: %f\n", output);
 #endif
-// Update the last error
-    lastError = error;
+
 }
 
 int Motor::getCurrEncoderCount() const {
@@ -172,7 +205,7 @@ int Motor::getCurrEncoderCount() const {
 
 int Motor::getEncoderSpeed() const {
 #ifdef USE_ENCODER_INTERRUPTS
-    return encoderSpeed;
+    return encoder_speed;
 #else
     return state->speed;
 #endif
@@ -181,5 +214,3 @@ int Motor::getEncoderSpeed() const {
 int Motor::getTargetSpeed() const {
     return target_speed;
 }
-
-

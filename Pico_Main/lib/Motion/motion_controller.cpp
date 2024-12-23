@@ -8,13 +8,12 @@
 #include "quad_substep.h"
 #include "quadrature_substep_pio.pio.h"
 
-// Physical constants for the robot that detmine how the robot moves
-const float WHEEL_RADIUS = 0.0325; // meters
-const float ROBOT_DIAMETER = 0.15; // meters
-const int ENCODER_COUNTS_PER_REV = 12 * 70;
-//Based on the quadrature encoder substep program, the number of substeps per revolution is 256
-constexpr int substeps_per_rev = 256;
 
+// Physical constants for the robot that detmine how the robot moves
+const float WHEEL_RADIUS = 0.02; // meters --> 2 cm
+const float ROBOT_DIAMETER = 0.15; // meters
+const int ENCODER_COUNTS_PER_REV = 7 * 4 * 150; // 7 PPR = 28 counts per revolution with quadrature, 150:1 gear ratio
+constexpr int TIMER_INTERVAL_MS = 15;
 
 #ifdef USE_ENCODER_INTERRUPTS
 // PID values for each motor
@@ -31,16 +30,16 @@ const float M3_KP = .2;
 const float M3_KI = .1;
 const float M3_KD = .2;
 
-Motor motor1(MOTOR1_A, MOTOR1_B, MOTOR1_A_ENC, MOTOR1_B_ENC);
+Motor motor1(MOTOR1_B, MOTOR1_A, MOTOR1_A_ENC, MOTOR1_B_ENC);
 Motor motor2(MOTOR2_A, MOTOR2_B, MOTOR2_A_ENC, MOTOR2_B_ENC);
 Motor motor3(MOTOR3_A, MOTOR3_B, MOTOR3_A_ENC, MOTOR3_B_ENC);
 #else
 
 // PID values for each motor
 const int M1_CALIBRATION[] = {0, 66, 126, 192};
-const float M1_KP = .12;
-const float M1_KI = .05;
-const float M1_KD = .3;
+const float M1_KP = .22;
+const float M1_KI = .4;
+const float M1_KD = .35;
 
 const int M2_CALIBRATION[] = {0, 45, 114, 190};
 const float M2_KP = .2;
@@ -67,7 +66,7 @@ bool newEncoderValues = false;
 
 MotionController::MotionController() {};
 
-void MotionController::initMotionController(){
+void MotionController::initMotionController() {
 #ifdef USE_ENCODER_INTERRUPTS
     // Set the GPIO pins to trigger the encoder interrupts using the interrupt
     // callback defined in encoder.cpp
@@ -84,13 +83,16 @@ void MotionController::initMotionController(){
     pio_add_program(pio, &quadrature_encoder_substep_program);
     //Initialize the pio state machines to reduce the arguments needed for the initMotor function
     state1.pio = pio;
+    state1.sm = 0;
     state2.pio = pio;
+    state2.sm = 1;
     state3.pio = pio;
+    state3.sm = 2;
 
     // Initialize the motors
     motor1.initMotor(MOTOR1_A, MOTOR1_B, MOTOR1_A_ENC, MOTOR1_B_ENC, &state1, M1_CALIBRATION);
     motor2.initMotor(MOTOR2_A, MOTOR2_B, MOTOR2_A_ENC, MOTOR2_B_ENC, &state2, M2_CALIBRATION);
-    motor3.initMotor(MOTOR3_A, MOTOR3_B, MOTOR3_A_ENC, MOTOR3_B_ENC, &state3, M3_CALIBRATION);
+    motor3.initMotor(MOTOR6_A, MOTOR6_B, MOTOR6_A_ENC, MOTOR6_B_ENC, &state3, M3_CALIBRATION);
     //Claim the pio states so that the Neopixel uses the pio1 block
     pio_claim_sm_mask(pio, 0b1111);
 
@@ -111,11 +113,8 @@ void MotionController::initMotionController(){
  * @return encoder counts per second
  */
 inline int speedToEncoder(float speed) {
-    int enc_speed = (int) (speed * ENCODER_COUNTS_PER_REV / (2 * PI * WHEEL_RADIUS));
-#ifndef USE_ENCODER_INTERRUPTS
-    enc_speed *= 256
-#endif
-    return enc_speed;
+    return (int) (speed * ENCODER_COUNTS_PER_REV / (2 * PI * WHEEL_RADIUS));
+
 }
 
 // TODO: Implement a keep orientation option so that it either arcs or it rotates
@@ -139,8 +138,8 @@ void MotionController::setSpeed(float speed, float theta, float omega) {
 #endif
     // Set the speed of each wheel
     motor1.setTargetSpeed(encoderSpeed1);
-    motor2.setTargetSpeed(encoderSpeed2);
-    motor3.setTargetSpeed(encoderSpeed3);
+//    motor2.setTargetSpeed(encoderSpeed2);
+//    motor3.setTargetSpeed(encoderSpeed3);
 }
 
 inline float bytesToFloat(const uint8_t *bytes) {
@@ -184,10 +183,10 @@ void MotionController::debugMotorSpeeds() {
     int target2 = motor2.getTargetSpeed();
     int target3 = motor3.getTargetSpeed();
 
-    int speed1 = motor1.getEncoderSpeed() * 1000 / TIMER_INTERVAL_MS;
+    int speed1 = motor1.getEncoderSpeed();
 //    int speed2 = motor2.getEncoderSpeed() * 1000/TIMER_INTERVAL_MS;
 //    int speed3 = motor3.getEncoderSpeed() * 1000/TIMER_INTERVAL_MS;
-    Serial.printf("Motor 1: Target: %i, Speed: %i, Encoder Speed: %i\n", target1, speed1, motor1.getEncoderSpeed());
+    Serial.printf("Motor 1: Target: %i, Speed: %i\n", target1, speed1);
 //    Serial.printf("Motor 2: Target: %i, Speed: %i\n", target2, speed2);
 //    Serial.printf("Motor 3: Target: %i, Speed: %i\n", target3, speed3);
 
@@ -195,9 +194,8 @@ void MotionController::debugMotorSpeeds() {
 
 }
 
-
+int encoderValues[] = {0, 0, 0};
 int *MotionController::getEncoderValues() {
-    int *encoderValues = new int[3];
     encoderValues[0] = motor1.getCurrEncoderCount();
     encoderValues[1] = motor2.getCurrEncoderCount();
     encoderValues[2] = motor3.getCurrEncoderCount();
@@ -214,13 +212,13 @@ void MotionController::runPIDUpdate() {
 #endif
     // Update the speed of each motor and disable interrupts while updating the speed
     // so that the timer ISR doesn't overwrite the speed
-    uint32_t status = save_and_disable_interrupts();
+//    uint32_t status = save_and_disable_interrupts();
 
     motor1.updateSpeed();
-    motor2.updateSpeed();
-    motor3.updateSpeed();
+//    motor2.updateSpeed();
+//    motor3.updateSpeed();
 
-    restore_interrupts(status);
+//    restore_interrupts(status);
     newEncoderValues = false;
 }
 
@@ -257,7 +255,6 @@ bool timerISR(struct repeating_timer *t) {
     calcEncoderDelta(&motor1);
     calcEncoderDelta(&motor2);
     calcEncoderDelta(&motor3);
-    return true;
 #else
     substep_update(&state1);
     substep_update(&state2);
