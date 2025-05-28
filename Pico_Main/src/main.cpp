@@ -1,16 +1,17 @@
 #include <Arduino.h>
+#include <EEPROM.h>
 #include "../include/config.h"
+#include <pico/stdlib.h>
+
 #include <FreeRTOS.h>
 #include <task.h>
 #include <queue.h>
-#include "../lib/Motion/motion_controller.h"
+
+#include "motion_controller.h"
 #include "status_LED.h"
-#include <pico/stdlib.h>
-#include "../lib/I2C_Control/i2c_control.h"
+#include "i2c_control.h"
 
-#include "../lib/Testing/serial_debugger.h"
-#include "../lib/Odometry/sensors_config.h"
-
+#include "sensors_config.h"
 
 MotionController motionController = MotionController();
 StatusLED statusLED = StatusLED();
@@ -18,51 +19,16 @@ StatusLED statusLED = StatusLED();
 void setup() {
 
     Serial.begin(115200);
-
+#ifdef USE_SERIAL_USB
+    while (!Serial)
+        ;
+#endif
     const int interval = 10;
     for (int i = 0; i < 100; ++i) {
         Serial.printf("Launching in %i ms\n", (100 - i) * interval);
         sleep_ms(interval);
     }
-    /*substep_state_t state;
-
-    // base pin to connect the A phase of the encoder. the B phase must be
-    // connected to the next pin
-    uint PIN_A = 20;
-
-
-    Serial.printf("Hello from quadrature encoder substep\n");
-
-    PIO pio = pio0;
-    uint sm = 0;
-
-    pio_add_program(pio, &quadrature_encoder_substep_program);
-    substep_init_state(pio, sm, MOTOR1_A_ENC, &state);
-
-
-
-    // replace this with the output of the calibration function
-    substep_set_calibration_data(&state, 64, 128, 192);
-
-    uint last_position = 0;
-    int last_speed = 0;
-    uint last_raw_step = 0;
-    while (1) {
-
-        // read the PIO and update the state data
-        substep_update(&state);
-
-        if (last_position != state.position || last_speed != state.speed || last_raw_step != state.raw_step) {
-            // print out the result
-            Serial.printf("pos: %-10d  speed: %-10d  raw_steps: %-10d\n", state.position, state.speed, state.raw_step);
-            last_position = state.position;
-            last_speed = state.speed;
-            last_raw_step = state.raw_step;
-        }
-        // run at roughly 100Hz
-        sleep_ms(10);
-    }
-*/
+    EEPROM.begin(EEPROM_SIZE);
 
     motionController.initMotionController();
     statusLED.init(NEOPIXEL_PIN);

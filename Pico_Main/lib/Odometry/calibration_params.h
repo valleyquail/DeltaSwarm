@@ -5,7 +5,6 @@
 #ifndef PICO_MAIN_CALIBRATION_PARAMS_H
 #define PICO_MAIN_CALIBRATION_PARAMS_H
 
-#include <Arduino.h>
 #include "ICM42688.h"
 #include "Adafruit_LIS3MDL.h"
 //IMU Configuration Parameters
@@ -31,11 +30,6 @@ const lis3mdl_dataRate_t dataRate = LIS3MDL_DATARATE_80_HZ;
 const lis3mdl_performancemode_t performanceMode = LIS3MDL_ULTRAHIGHMODE;
 // Operation Mode
 const lis3mdl_operationmode_t operationMode = LIS3MDL_CONTINUOUSMODE;
-
-
-
-
-
 
 
 #endif //PICO_MAIN_CALIBRATION_PARAMS_H

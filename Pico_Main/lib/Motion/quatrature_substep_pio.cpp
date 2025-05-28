@@ -239,9 +239,10 @@ void substep_update(substep_state_t *state) {
 
 
 // function to measure the difference between the different steps on the encoder
-void substep_calibrate_phases(PIO pio, uint sm) {
-#define sample_count  1024
-//#define SHOW_ALL_SAMPLES
+int *substep_calibrate_phases(PIO pio, uint sm)
+{
+#define sample_count 1024
+// #define SHOW_ALL_SAMPLES
 #ifdef SHOW_ALL_SAMPLES
     static int result[sample_count];
     int i;
@@ -258,7 +259,8 @@ void substep_calibrate_phases(PIO pio, uint sm) {
     // transition measures of the PIO code to measure the time of each step
     last_step = -10;
     index = -10;
-    while (index < sample_count) {
+    while (index < sample_count)
+    {
 
         quadrature_encoder_substep_get_counts(pio, sm, &step, &cycles, &step_us);
 
@@ -272,14 +274,16 @@ void substep_calibrate_phases(PIO pio, uint sm) {
 
         // convert the "time since last transition" to an absolute microsecond
         // timestamp
-        if (cycles > 0) {
+        if (cycles > 0)
+        {
             Serial.printf("error: expected forward motion\n");
             return;
         }
         cur_us = step_us + (cycles * 13) / clocks_per_us;
 
         // if the index is already synchronized, use the step size
-        if (index >= 0) {
+        if (index >= 0)
+        {
 #ifdef SHOW_ALL_SAMPLES
             result[index] = cur_us - last_us;
 #endif
@@ -293,7 +297,8 @@ void substep_calibrate_phases(PIO pio, uint sm) {
 
 #ifdef SHOW_ALL_SAMPLES
     Serial.printf("full sample table:\n");
-    for (i = 0; i < sample_count; i++) {
+    for (i = 0; i < sample_count; i++)
+    {
         Serial.printf("%d ", result[i]);
         if ((i & 3) == 3)
             Serial.printf("\n");
@@ -309,9 +314,10 @@ void substep_calibrate_phases(PIO pio, uint sm) {
     // print calibration information
     Serial.printf("calibration command:\n\n");
     Serial.printf("\tsubstep_set_calibration_data(&state, %d, %d, %d);\n\n",
-           calib[0], calib[1], calib[2]);
-}
+                  calib[0], calib[1], calib[2]);
 
+    return calib;
+}
 
 // set the phase size calibration, use the "substep_calibrate_phases" function
 // to get the values. Many encoders (especially low cost ones) have phases that

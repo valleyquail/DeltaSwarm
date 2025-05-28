@@ -17,6 +17,7 @@ class MotionController
 {
 public:
     MotionController();
+
     void initMotionController();
 
     /**
@@ -53,9 +54,7 @@ public:
 
     static int *getEncoderValues();
 
-    static void runMotorCalibration();
-
-
+    static int *runMotorCalibration();
 
     void debugMotorSpeeds();
 };
