@@ -4,9 +4,8 @@
 #define I2C_CONTROL_H
 
 #include <pico/stdio.h>
-#include <cstdio>
-#include "../../include/config.h"
-#include "unordered_map"
+
+
 
 /**
  * @brief This is a an API that allows users to register new I2C actions without having to modify some functions directly.
@@ -45,9 +44,7 @@ struct DataPacket {
     } status;
 };
 
-extern struct DataPacket data_packets[];
-
-
+extern DataPacket data_packets[];
 
 
 void initPicoPeriph();

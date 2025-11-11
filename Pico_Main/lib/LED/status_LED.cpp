@@ -54,6 +54,3 @@ Adafruit_NeoPixel StatusLED::getPixel() {
     return this->pixel;
 }
 
-void StatusLED::inspectPIOBlock() {
-    Serial.println(pio_get_index(statusLED.getPixel().getPIO()));
-}

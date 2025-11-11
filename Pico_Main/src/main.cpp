@@ -38,9 +38,9 @@ void setup() {
     delay(1000);
 
 //    Serial.printf("I2C from ESP\n");
-    register_i2c_function(reinterpret_cast<i2c_response_t>(&motionCallback), PICO_MOTOR_COMMAND_REGISTER,
+    register_i2c_function(&motionCallback, PICO_MOTOR_COMMAND_REGISTER,
                           MOTOR_COMMAND_SIZE);
-    register_i2c_function(reinterpret_cast<i2c_response_t>(&testCallback), TEST_CONNECTION_REGISTER,
+    register_i2c_function(&testCallback, TEST_CONNECTION_REGISTER,
                           TEST_CONNECTION_SIZE);
 
 //    initPicoPeriph();

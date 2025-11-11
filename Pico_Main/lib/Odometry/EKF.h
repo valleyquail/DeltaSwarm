@@ -7,9 +7,7 @@
 #include "sensors_config.h"
 #include <ArduinoEigenDense.h>
 
-class EKF
-{
-
+class EKF {
 protected:
     // These ere used as pointers to the data structures in the sensors_config.h file
     // It needs to be done this way to prevent duplicates of the structures and to ensure atomicity in the system
@@ -20,7 +18,8 @@ protected:
     // Eigen::Matrix<float, 4> state_estimate;
 
 public:
-    EKF(imu_data_t *imu_data, mag_data_t *mag_data) : imu_data(imu_data), mag_data(mag_data) {}
+    EKF(imu_data_t *imu_data, mag_data_t *mag_data) : imu_data(imu_data), mag_data(mag_data) {
+    }
 
     // Function to initialize the EKF
     void init();
@@ -31,11 +30,11 @@ public:
     // Function to get the current state estimate
     Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> *getStateEstimate();
 
-     // Function to get the current covariance estimate
-     Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> *getCovarianceEstimate();
+    // Function to get the current covariance estimate
+    Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> *getCovarianceEstimate();
 
-     // Function to reset the EKF
-     void reset();
+    // Function to reset the EKF
+    void reset();
 };
 
 #endif // PICO_MAIN_EKF_H

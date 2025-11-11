@@ -5,20 +5,27 @@
 #include <Wire.h>
 #include "../../include/config.h"
 #include "i2c_control.h"
+#include <etl/unordered_map.h>
+
+
+DataPacket data_packets[NUM_PICO_REGISTERS];
+DataPacket *current_packet;
+// static char pico_buffer[33];
 
 // Easy way to store both the index of the data packet and the length of the data stored in the packet
 struct DataParameters {
     int8_t _array_index;
     int8_t _data_len;
 };
+
 //Hashmap of function pointers to call when a packet is received
-std::unordered_map<int, i2c_response_t> i2cFunctions;
+etl::unordered_map<int, i2c_response_t, NUM_PICO_REGISTERS> i2cFunctions;
 /*
- * This is a hashmap that maps the packet address to the index of the data packet so that the addresses in the Pico
+ * This is a hashmap that maps the packet address to an index for a  data packet so that the addresses in the Pico
  * registers do not have to be consecutive
  */
 
-std::unordered_map<uint8_t, struct DataParameters> address_map;
+etl::unordered_map<uint8_t, DataParameters, NUM_PICO_REGISTERS> address_map;
 int8_t data_packet_access_assignment_index = 0;
 
 uint8_t pico_register;
@@ -38,27 +45,37 @@ inline void i2cResponse(int curr_packet_address) {
 }
 
 
-struct DataPacket data_packets[NUM_PICO_REGISTERS];
-DataPacket *current_packet;
-static char pico_buffer[33];
+// void onReceive(int numBytes) {
+//     for (int i = 0; i < numBytes; i++) {
+//         pico_buffer[i] = Wire.read();
+//     }
+// #ifdef I2C_DEBUG
+//     for (int i = 0; i < numBytes; i++) {
+//         Serial.printf("%c", pico_buffer[i]);
+//     }
+//     Serial.printf("\n");
+// #endif
+//     pico_register = pico_buffer[0];
+//     current_packet = &data_packets[address_map[pico_register]._array_index];
+//     current_packet->data_len = address_map[pico_register]._data_len;
+//     // If the packet is only the register byte, then there is no data to write, just return
+//     if (numBytes == 1)
+//         return;
+//     memcpy(current_packet->buffer, pico_buffer + 1, numBytes - 1);
+//     current_packet->status.message_sent = false;
+//     i2cResponse(pico_register);
+// }
 
 void onReceive(int numBytes) {
-    for (int i = 0; i < numBytes; i++) {
-        pico_buffer[i] = Wire.read();
-    }
-#ifdef I2C_DEBUG
-    for (int i = 0; i < numBytes; i++) {
-        Serial.printf("%c", pico_buffer[i]);
-    }
-    Serial.printf("\n");
-#endif
-    pico_register = pico_buffer[0];
+    pico_register = Wire.read();
     current_packet = &data_packets[address_map[pico_register]._array_index];
     current_packet->data_len = address_map[pico_register]._data_len;
     // If the packet is only the register byte, then there is no data to write, just return
     if (numBytes == 1)
         return;
-    memcpy(current_packet->buffer, pico_buffer + 1, numBytes - 1);
+    for (int i = 0; i < numBytes - 1; i++) {
+        current_packet->buffer[i] = Wire.read();
+    }
     current_packet->status.message_sent = false;
     i2cResponse(pico_register);
 }

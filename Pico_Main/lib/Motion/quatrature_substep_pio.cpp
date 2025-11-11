@@ -247,18 +247,19 @@ int *substep_calibrate_phases(PIO pio, uint sm)
     static int result[sample_count];
     int i;
 #endif
-    int index, cycles, clocks_per_us, calib[4];
+    int cycles;
+    static int calib[4];
     uint cur_us, last_us, step_us, step, last_step;
     int64_t sum[4], total;
 
     memset(sum, 0, sizeof(sum));
 
-    clocks_per_us = (clock_get_hz(clk_sys) + 500000) / 1000000;
+    int clocks_per_us = (clock_get_hz(clk_sys) + 500000) / 1000000;
 
     // keep reading the PIO state in a tight loop to get all steps and use the
     // transition measures of the PIO code to measure the time of each step
     last_step = -10;
-    index = -10;
+    int index = -10;
     while (index < sample_count)
     {
 
@@ -277,7 +278,7 @@ int *substep_calibrate_phases(PIO pio, uint sm)
         if (cycles > 0)
         {
             Serial.printf("error: expected forward motion\n");
-            return;
+            return calib;
         }
         cur_us = step_us + (cycles * 13) / clocks_per_us;
 
